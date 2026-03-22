@@ -13,8 +13,14 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode'); // 1. IMPORT QR LIBRARY
 
+const connectDB = require('./config/db'); // Import DB connect function
+const Item = require('./models/Item');    // Import Item model
+
 const app = express();
 const PORT = 5000;
+
+// Connect to MongoDB
+connectDB();
 
 app.use(cors());
 // Increase limit for Image Uploads
@@ -140,6 +146,38 @@ Status: REPORTED
     } catch (error) {
         console.error("Error sending report email:", error);
         res.status(500).json({ message: "Failed to send email", error: error.message });
+    }
+});
+
+// ==========================================
+// ROUTE 1.5: REPORT FOUND ITEM (MongoDB Integration)
+// ==========================================
+app.post('/api/items/report-found', async (req, res) => {
+    try {
+        const { collectorName, phoneNumber, email, itemName, category, location, dateReported, description } = req.body;
+        
+        console.log(`Processing Found Item report for ${email}`);
+        
+        const newItem = new Item({
+            type: 'Found',
+            collectorName,
+            phoneNumber,
+            email,
+            itemName,
+            category,
+            location,
+            dateReported: new Date(dateReported),
+            description,
+            status: 'Pending'
+        });
+
+        const savedItem = await newItem.save();
+        console.log(`Successfully saved Found Item: ${savedItem._id}`);
+
+        res.status(201).json({ success: true, message: "Item reported successfully", data: savedItem });
+    } catch (error) {
+        console.error("Error saving found item:", error);
+        res.status(500).json({ success: false, message: "Server Error: Could not save item", error: error.message });
     }
 });
 
