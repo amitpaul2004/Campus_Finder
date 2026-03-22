@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JISU - Admin Console</title>
+    <link rel="icon" type="image/png" href="/Frontend/img/logo/favicon.png">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="librarian.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="college-header fixed-top">
+        <div class="logo-wrapper">
+            <a href="index.html">
+                <img src="/Frontend/img/logo/logo-light.png" alt="JIS Logo" class="college-logo">
+            </a>
+        </div>
+        
+        <div class="header-content-left">
+            <span class="portal-title">LIBRARIAN PORTAL</span>
+            <div class="vertical-line"></div>
+            <a href="/Frontend/main/login.html" class="logout-btn">
+                <i class="fa-solid fa-power-off"></i> Logout
+            </a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        
+        <div class="welcome-section">
+            <div class="greeting">
+                <h1 id="greeting-text">Good Morning, Admin</h1>
+                <p>Here's what's happening in the lost & found department today.</p>
+            </div>
+            <div class="date-badge">
+                <i class="fa-regular fa-calendar"></i> <span id="current-date">Jan 01, 2026</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card c-blue">
+                <div class="stat-content"><h3 class="counter" data-target="12">0</h3><p>New Reports</p></div>
+                <div class="icon-box"><i class="fa-solid fa-inbox"></i></div>
+            </div>
+            <div class="stat-card c-orange">
+                <div class="stat-content"><h3 class="counter" data-target="5">0</h3><p>Pending Review</p></div>
+                <div class="icon-box"><i class="fa-solid fa-hourglass-start"></i></div>
+            </div>
+            <div class="stat-card c-green">
+                <div class="stat-content"><h3 class="counter" data-target="28">0</h3><p>Returned</p></div>
+                <div class="icon-box"><i class="fa-solid fa-handshake"></i></div>
+            </div>
+            <div class="stat-card c-purple">
+                <div class="stat-content"><h3 class="counter" data-target="142">0</h3><p>Inventory</p></div>
+                <div class="icon-box"><i class="fa-solid fa-warehouse"></i></div>
+            </div>
+        </div>
+
+        <div class="grid-split">
+            
+            <div class="data-card">
+                <div class="card-header">
+                    <h2>Recent Activity</h2>
+                    <a href="/Frontend/Librian/see_all/see_all.html" class="view-all-link">See All</a>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item Details</th>
+                                <th>Reported By</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardTableBody">
+                            
+                            <tr data-status="new" id="row-1">
+                                <td>
+                                    <div class="item-name">Blue Nike Bag</div>
+                                    <div class="ref-id">#CLM-2025-001</div>
+                                </td>
+                                <td><div class="user-cell"><div class="avatar">AP</div><span>Amit Paul</span></div></td>
+                                <td>Today</td>
+                                <td><span class="status-pill st-new">New</span></td>
+                                <td>
+                                    <button class="icon-btn" onclick="openEditModal('row-1')"><i class="fa-solid fa-pen"></i></button>
+                                </td>
+                            </tr>
+
+                            <tr data-status="ready" id="row-2">
+                                <td>
+                                    <div class="item-name">Dell Laptop Charger</div>
+                                    <div class="ref-id">#CLM-2025-002</div>
+                                </td>
+                                <td><div class="user-cell"><div class="avatar">RK</div><span>Rahul K.</span></div></td>
+                                <td>Yesterday</td>
+                                <td><span class="status-pill st-ready">Ready</span></td>
+                                <td>
+                                    <button class="icon-btn" onclick="openEditModal('row-2')"><i class="fa-solid fa-pen"></i></button>
+                                </td>
+                            </tr>
+
+                            <tr data-status="pending" id="row-3">
+                                <td>
+                                    <div class="item-name">Physics Book</div>
+                                    <div class="ref-id">#CLM-2025-003</div>
+                                </td>
+                                <td><div class="user-cell"><div class="avatar">PS</div><span>Priya S.</span></div></td>
+                                <td>22 Dec</td>
+                                <td><span class="status-pill st-pending">Verify</span></td>
+                                <td>
+                                    <button class="icon-btn" onclick="openEditModal('row-3')"><i class="fa-solid fa-pen"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <a href="/Frontend/Librian/VerifyClaim/VerifyClaim.html" class="action-tile">
+                    <div class="tile-icon"><i class="fa-solid fa-qrcode"></i></div>
+                    <div><h4>Verify Claim</h4><span class="tile-desc">Check ID</span></div>
+                </a>
+                <a href="/Frontend/Librian/UpdateStatus/UpdateStatus.html" class="action-tile">
+                    <div class="tile-icon"><i class="fa-solid fa-pen-nib"></i></div>
+                    <div><h4>Update Status</h4><span class="tile-desc">Edit Items</span></div>
+                </a>
+                <a href="/Frontend/Librian/Broadcast/Broadcast.html" class="action-tile">
+                    <div class="tile-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    <div><h4>Broadcast</h4><span class="tile-desc">Send Alert</span></div>
+                </a>
+                <a href="/Frontend/Librian/see_all/see_all.html" class="action-tile">
+                    <div class="tile-icon"><i class="fa-solid fa-file-export"></i></div>
+                    <div><h4>Export Data</h4><span class="tile-desc">Download CSV</span></div>
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Item Status</h3>
+                <button class="close-modal" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="color:#64748b; margin-bottom: 20px;">Ref ID: <span id="modalRefId" style="font-weight:bold; color:#1e2a5e;"></span></p>
+                <label style="font-size: 13px; font-weight: 600; color: #1e2a5e;">New Status</label>
+                <select id="modalStatusSelect" class="full-width-select">
+                    <option value="new">New</option>
+                    <option value="ready">Ready for Pickup</option>
+                    <option value="returned">Returned</option>
+                    <option value="expired">Expired</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+                <button class="save-btn" onclick="saveStatusChange()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="librarian.js"></script>
+</body>
+</html>

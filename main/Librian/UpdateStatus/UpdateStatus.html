@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JISU - Update Status</title>
+    <link rel="icon" type="image/png" href="/Frontend/img/logo/favicon.png">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="UpdateStatus.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <header class="college-header fixed-top">
+        <div class="logo-wrapper">
+            <a href="index.html">
+                <img src="/Frontend/img/logo/logo-light.png" alt="JIS Logo" class="college-logo">
+            </a>
+        </div>
+        <div class="header-content-left">
+            <span class="portal-title">LIBRARIAN PORTAL</span>
+            <div class="vertical-line"></div>
+            <a href="/Frontend/main/login.html" class="logout-btn"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        
+        <div class="page-header">
+            <a href="/Frontend/Librian/Librarian.html" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i> Dashboard
+            </a>
+            <h1 class="title-gradient">Update Item Status</h1>
+            <p class="subtitle">Search for an item ID to modify its workflow status.</p>
+        </div>
+
+        <div class="search-section fade-in-up">
+            <div class="search-box">
+                <i class="fa-solid fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search Ref ID (e.g. CLM-2025-001)" onkeypress="handleEnter(event)">
+                <button class="btn-search" onclick="searchItem()">
+                    <span>Find Item</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="editContainer" class="result-section" style="display: none;">
+            
+            <div class="item-card glass-effect">
+                <div class="card-badge" id="displayStatus">NEW</div>
+                
+                <div class="card-content">
+                    <div class="image-box">
+                        <img id="displayImage" src="" alt="Lost Item">
+                        <div class="img-overlay">
+                            <span id="displayRef">CLM-000</span>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h2 id="displayName">Item Name</h2>
+                        
+                        <div class="student-pill">
+                            <div class="avatar-circle"><i class="fa-solid fa-user"></i></div>
+                            <div>
+                                <span class="label">Reported By</span>
+                                <h4 id="displayStudent">Student Name</h4>
+                            </div>
+                        </div>
+
+                        <div class="details-row">
+                            <div class="detail">
+                                <i class="fa-regular fa-calendar"></i>
+                                <div>
+                                    <span>Date Lost</span>
+                                    <strong id="displayDate">--</strong>
+                                </div>
+                            </div>
+                            <div class="detail">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <div>
+                                    <span>Location</span>
+                                    <strong id="displayLocation">--</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-divider"></div>
+
+                        <div class="control-panel">
+                            <div class="select-wrapper">
+                                <label>Set New Status</label>
+                                <div class="custom-select">
+                                    <select id="statusSelect" onchange="previewStatusColor()">
+                                        <option value="New">New Report</option>
+                                        <option value="Ready">Ready for Pickup</option>
+                                        <option value="Returned">Returned to Owner</option>
+                                        <option value="Expired">Expired / Archived</option>
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down"></i>
+                                </div>
+                            </div>
+                            
+                            <button class="btn-save" onclick="saveStatus()">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Updates
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="UpdateStatus.js"></script>
+</body>
+</html>
