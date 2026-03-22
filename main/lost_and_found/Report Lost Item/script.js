@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const refId = `#CLM-${new Date().getFullYear()}-${randomNum}`;
 
             // 3. Send to Backend
-            fetch('http://localhost:5000/send-report', {
+            fetch(' https://uniback-backend.onrender.com/send-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
