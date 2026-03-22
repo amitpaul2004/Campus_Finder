@@ -23,32 +23,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('success-modal');
     
     if(form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault(); // Stop page reload
 
-            // Get the name for the modal
-            const collectorNameInput = form.querySelector('input[type="text"]');
-            const nameDisplay = document.getElementById('collector-name-display');
-            
-            if(collectorNameInput && nameDisplay) {
-                nameDisplay.textContent = collectorNameInput.value || "Collector";
-            }
+            const submitBtn = form.querySelector('.submit-btn');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = 'Submitting... <i class="fa-solid fa-spinner fa-spin"></i>';
+            submitBtn.disabled = true;
 
-            // Show the Modal
-            modal.classList.add('active');
+            // Extract values
+            const data = {
+                collectorName: document.getElementById('collector-name').value,
+                phoneNumber: document.getElementById('phone-number').value,
+                email: document.getElementById('user-email').value,
+                itemName: document.getElementById('item-name').value,
+                category: document.getElementById('category').value,
+                location: document.getElementById('location').value,
+                dateReported: document.getElementById('date-reported').value,
+                description: document.getElementById('description').value
+            };
 
-            // --- REFRESH/RESET LOGIC STARTS HERE ---
-            
-            // 1. Clear all standard inputs (Text, Date, Select)
-            form.reset();
+            try {
+                const response = await fetch('http://localhost:5000/api/items/report-found', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            // 2. Manually reset the custom File Upload UI
-            if(uploadText && uploadBox) {
-                uploadText.innerHTML = `
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>Upload Image (Optional)</span>
-                `;
-                uploadBox.style.borderColor = '#ddd'; // Reset border color
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Update Modal
+                    const nameDisplay = document.getElementById('collector-name-display');
+                    if(nameDisplay) {
+                        nameDisplay.textContent = data.collectorName || "Collector";
+                    }
+
+                    // Show the Modal
+                    modal.classList.add('active');
+
+                    // Reset form
+                    form.reset();
+                    if(uploadText && uploadBox) {
+                        uploadText.innerHTML = `
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Upload Image (Optional)</span>
+                        `;
+                        uploadBox.style.borderColor = '#ddd';
+                    }
+                } else {
+                    alert('Failed to submit report: ' + (result.message || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error connecting to the server. Is the backend running?');
+            } finally {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
             }
         });
     }
