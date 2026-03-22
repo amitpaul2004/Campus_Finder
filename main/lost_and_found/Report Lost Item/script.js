@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const refId = `#CLM-${new Date().getFullYear()}-${randomNum}`;
 
             // 3. Send to Backend
-            fetch('https://uniback-backend.onrender.com/send-report', {
+            fetch('http://localhost:5000/send-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -69,18 +69,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     location: location
                 })
             })
-            .then(async (response) => {
-    const data = await response.json();
-
-    if (response.ok) {
-        document.getElementById('generated-ref-id').textContent = refId;
-        document.getElementById('user-email-display').textContent = userEmail;
-        modal.classList.add('active');
-        form.reset();
-    } else {
-        alert("Error: " + data.message);
-    }
-})
+            .then(response => {
+                if(response.ok) {
+                    document.getElementById('generated-ref-id').textContent = refId;
+                    document.getElementById('user-email-display').textContent = userEmail;
+                    modal.classList.add('active');
+                    form.reset();
+                } else {
+                    alert('Error sending email. Is the backend running?');
+                }
+            })
             .catch(err => {
                 console.error(err);
                 alert('Server error. Run "node server.js" in backend folder.');
