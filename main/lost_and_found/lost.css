@@ -388,7 +388,7 @@ body {
     width: 100%;
     
     /* Background Image Settings */
-    background-image: url('/Frontend/img/jisu-bg.jpg'); 
+    background-image: url('./View All Items/img/jisu-bg.jpg'); 
     background-size: cover;      /* Ensures image covers the whole area */
     background-position: center; /* Centers the image */
     background-repeat: no-repeat;
