@@ -14,7 +14,7 @@ const bodyParser = require('body-parser');
 const QRCode = require('qrcode'); // 1. IMPORT QR LIBRARY
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 // Increase limit for Image Uploads
