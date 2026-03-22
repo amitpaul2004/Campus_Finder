@@ -23,11 +23,18 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 // --- UPDATED EMAIL CONFIGURATION ---
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    tls: {
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000
 });
 
 // Add a verification check to see if connection works on startup
