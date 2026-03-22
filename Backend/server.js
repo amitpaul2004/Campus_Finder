@@ -8,10 +8,12 @@
 require('dotenv').config(); 
 
 const express = require('express');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode'); // 1. IMPORT QR LIBRARY
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,29 +24,9 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 // --- UPDATED EMAIL CONFIGURATION ---
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000
-});
 
 // Add a verification check to see if connection works on startup
-transporter.verify(function (error, success) {
-    if (error) {
-        console.log("❌ Email Server Error: ", error);
-    } else {
-        console.log("✅ Email Server is Ready to Send messages");
-    }
-});
+
 
 // --- ROUTE 0: TEST SERVER STATUS ---
 app.get('/', (req, res) => {
@@ -131,9 +113,20 @@ Status: REPORTED
             ]
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`Email Sent Successfully to ${userEmail}`);
-        res.status(200).json({ message: "Report Email Sent Successfully" });
+        await resend.emails.send({
+  from: 'onboarding@resend.dev',   // default working sender
+  to: userEmail,
+  subject: `Report Submitted (${refId})`,
+  html: `
+    <h2>Report Submitted</h2>
+    <p><strong>Name:</strong> ${collectorName}</p>
+    <p><strong>Item:</strong> ${itemName}</p>
+    <p><strong>Ref ID:</strong> ${refId}</p>
+    <p><strong>Date:</strong> ${dateLost}</p>
+    <p><strong>Location:</strong> ${location}</p>
+  `
+});
+ res.status(200).json({ message: "Email sent successfully" });
 
     } catch (error) {
         console.error("Error sending report email:", error);

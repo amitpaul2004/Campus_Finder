@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadInput = document.getElementById('file-upload');
     const uploadLabel = document.getElementById('upload-label');
 
+
+
     // Visual feedback for file upload
     if(uploadInput) {
         uploadInput.addEventListener('change', function() {
