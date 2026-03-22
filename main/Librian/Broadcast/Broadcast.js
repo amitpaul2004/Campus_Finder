@@ -41,7 +41,7 @@ async function sendBroadcast(e) {
     try {
         // 3. IF CHECKBOX IS CHECKED -> SEND TO BACKEND    
         if (sendEmail) {
-            const response = await fetch('http://localhost:5000/broadcast-alert', {
+            const response = await fetch('https://uniback-backend.onrender.com/broadcast-alert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ audience, subject, body })
