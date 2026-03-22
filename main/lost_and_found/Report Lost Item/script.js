@@ -69,16 +69,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     location: location
                 })
             })
-            .then(response => {
-                if(response.ok) {
-                    document.getElementById('generated-ref-id').textContent = refId;
-                    document.getElementById('user-email-display').textContent = userEmail;
-                    modal.classList.add('active');
-                    form.reset();
-                } else {
-                    alert('Error sending email. Is the backend running?');
-                }
-            })
+            .then(async (response) => {
+    const data = await response.json();
+
+    if (response.ok) {
+        document.getElementById('generated-ref-id').textContent = refId;
+        document.getElementById('user-email-display').textContent = userEmail;
+        modal.classList.add('active');
+        form.reset();
+    } else {
+        alert("Error: " + data.message);
+    }
+})
             .catch(err => {
                 console.error(err);
                 alert('Server error. Run "node server.js" in backend folder.');
