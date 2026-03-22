@@ -1,5 +1,5 @@
 // steps to run the server:--
-//cd Backend
+//d Frontend\Backendc
 //node server.js
 
 
@@ -8,15 +8,13 @@
 require('dotenv').config(); 
 
 const express = require('express');
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const nodemailer = require('nodemailer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const QRCode = require('qrcode'); // 1. IMPORT QR LIBRARY
 
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 app.use(cors());
 // Increase limit for Image Uploads
@@ -24,9 +22,31 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 // --- UPDATED EMAIL CONFIGURATION ---
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,       // Use SSL Port
+    secure: true,    // Must be true for port 465
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    // ⬇️ ADD THIS TO FIX TIMEOUTS ⬇️
+    tls: {
+        // Do not fail on invalid certs
+        rejectUnauthorized: false
+    },
+    // Force IPv4 (Fixes Render/Gmail timeout issues)
+    family: 4 
+});
 
 // Add a verification check to see if connection works on startup
-
+transporter.verify(function (error, success) {
+    if (error) {
+        console.log("❌ Email Server Error: ", error);
+    } else {
+        console.log("✅ Email Server is Ready to Send messages");
+    }
+});
 
 // --- ROUTE 0: TEST SERVER STATUS ---
 app.get('/', (req, res) => {
@@ -57,7 +77,7 @@ Status: REPORTED
         const qrImage = await QRCode.toDataURL(qrData);
 
         const mailOptions = {
-            from: `"JISU Student Services" <${process.env.EMAIL_USER}>`,
+            from: '"JISU Student Services" <your_email@gmail.com>',
             to: userEmail,
             subject: `ACTION REQUIRED: Report Submitted (${refId})`,
             html: `
@@ -113,20 +133,9 @@ Status: REPORTED
             ]
         };
 
-        await resend.emails.send({
-  from: 'onboarding@resend.dev',   // default working sender
-  to: userEmail,
-  subject: `Report Submitted (${refId})`,
-  html: `
-    <h2>Report Submitted</h2>
-    <p><strong>Name:</strong> ${collectorName}</p>
-    <p><strong>Item:</strong> ${itemName}</p>
-    <p><strong>Ref ID:</strong> ${refId}</p>
-    <p><strong>Date:</strong> ${dateLost}</p>
-    <p><strong>Location:</strong> ${location}</p>
-  `
-});
- res.status(200).json({ message: "Email sent successfully" });
+        await transporter.sendMail(mailOptions);
+        console.log(`Email Sent Successfully to ${userEmail}`);
+        res.status(200).json({ message: "Report Email Sent Successfully" });
 
     } catch (error) {
         console.error("Error sending report email:", error);

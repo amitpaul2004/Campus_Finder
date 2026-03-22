@@ -13,8 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadInput = document.getElementById('file-upload');
     const uploadLabel = document.getElementById('upload-label');
 
-
-
     // Visual feedback for file upload
     if(uploadInput) {
         uploadInput.addEventListener('change', function() {
@@ -57,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const refId = `#CLM-${new Date().getFullYear()}-${randomNum}`;
 
             // 3. Send to Backend
-            fetch(' https://uniback-backend.onrender.com/send-report', {
+            fetch('http://localhost:5000/send-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
