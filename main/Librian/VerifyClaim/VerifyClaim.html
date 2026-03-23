@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JISU - Verify Claim</title>
+    <link rel="icon" type="image/png" href="../img/favicon.png">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="VerifyClaim.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <header class="college-header fixed-top">
+        <div class="logo-wrapper">
+            <a href="index.html">
+                <img src="../img/logo-light.png" alt="JIS Logo" class="college-logo">
+            </a>
+        </div>
+        <div class="header-content-left">
+            <span class="portal-title">LIBRARIAN PORTAL</span>
+            <div class="vertical-line"></div>
+            <a href="/login.html" class="logout-btn"><i class="fa-solid fa-power-off"></i> Logout</a>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        
+        <div class="page-hero">
+            <div class="hero-text">
+                <a href="../Librarian.html" class="back-link">
+                    <div class="icon-circle"><i class="fa-solid fa-arrow-left"></i></div>
+                    <span>Back to Dashboard</span>
+                </a>
+                <h1 class="fade-in-text">Claim Verification</h1>
+                <p class="fade-in-text delay-1">Enter the Reference ID to verify ownership before release.</p>
+            </div>
+        </div>
+
+        <div class="verification-card glass-panel fade-in-text delay-2">
+            
+            <div class="input-section">
+                <label>Enter Reference ID</label>
+                <div class="input-group">
+                    <div class="input-icon"><i class="fa-solid fa-hashtag"></i></div>
+                    <input type="text" id="refInput" placeholder="e.g. CLM-2025-001" onkeypress="handleEnter(event)">
+                    <button class="verify-btn" onclick="verifyClaim()">
+                        Verify Now <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                <p class="hint-text">Enter the Claim ID provided in the student's email/app.</p>
+            </div>
+            
+            <div class="scan-section" onclick="startCameraScan()">
+                <div class="qr-placeholder">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <span>Scan QR Code</span>
+            </div>
+
+        </div>
+
+        <div id="resultContainer" class="result-container" style="display: none;">
+            
+            <div id="successCard" class="status-card success" style="display: none;">
+                <div class="status-header">
+                    <div class="status-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <h2>Claim Verified</h2>
+                        <span class="timestamp">Checked just now</span>
+                    </div>
+                    <span id="resStatusBadge" class="status-badge st-ready">Ready for Pickup</span>
+                </div>
+
+                <div class="verification-content">
+                    <div class="item-photo-wrapper">
+                        <span class="photo-label">Registered Item Photo</span>
+                        <img id="resItemImage" src="" alt="Lost Item Image" class="item-image">
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Item Name</label>
+                            <h4 id="resItemName">--</h4>
+                        </div>
+                        <div class="detail-item">
+                            <label>Student Name</label>
+                            <h4 id="resStudent">--</h4>
+                        </div>
+                        <div class="detail-item">
+                            <label>Student ID</label>
+                            <h4 id="resStudentId">--</h4>
+                        </div>
+                        <div class="detail-item">
+                            <label>Location</label>
+                            <h4 id="resLocation">--</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="resetVerify()">Cancel</button>
+                    <button class="btn-outline" onclick="downloadReceipt()">
+                        <i class="fa-solid fa-file-invoice"></i>Download Receipt
+                    </button>
+                    <button class="btn-primary" onclick="markAsReturned()">
+                        <i class="fa-solid fa-hand-holding-hand"></i> Confirm Handover
+                    </button>
+                </div>
+            </div>
+
+            <div id="errorCard" class="status-card error" style="display: none;">
+                <div class="error-content">
+                    <div class="error-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                    <h3>Record Not Found</h3>
+                    <p>The Reference ID <b><span id="invalidRef"></span></b> does not exist in the system.</p>
+                    <button class="btn-secondary" onclick="resetVerify()">Try Again</button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="scannerModal" class="scanner-overlay">
+        <div class="scanner-content">
+            <div class="scanner-header">
+                <h3>Scan Student QR</h3>
+                <button class="close-scan" onclick="stopCameraScan()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="reader" style="width: 100%;"></div>
+            <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 10px;">
+                Point your camera at the QR code on the receipt or student app.
+            </p>
+        </div>
+    </div>
+
+    <script src="VerifyClaim.js"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="../View All Items/img/favicon.png">
+    <title>JISU - Help Center</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="college-header fixed-top">
+        <div class="logo-wrapper">
+            <a href="index.html">
+                <img src="../View All Items/img/logo-light.png" alt="JIS Group Logo" class="college-logo">
+            </a>
+        </div>
+        <div class="header-title">STUDENT SERVICES PORTAL</div>
+    </header>
+
+    <main class="help-wrapper">
+        
+        <section class="hero-section">
+            <div class="hero-bg-shape shape-1"></div>
+            <div class="hero-bg-shape shape-2"></div>
+            
+            <div class="hero-content fade-in-up">
+                <div class="badge-pill"><i class="fa-solid fa-life-ring"></i> Support Center</div>
+                <h1>How can we assist you?</h1>
+                <p>Search our knowledge base or browse the recovery guide below.</p>
+                
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="faqSearch" placeholder="Type keywords like 'ID Card', 'Location', 'Time'..." onkeyup="filterFAQs()">
+                </div>
+            </div>
+        </section>
+
+        <section class="steps-section">
+            <h2 class="section-title fade-in-on-scroll">The Recovery Process</h2>
+            
+            <div class="steps-grid">
+                <div class="step-card glass-card fade-in-on-scroll delay-1">
+                    <div class="step-number">01</div>
+                    <div class="step-icon"><i class="fa-solid fa-file-signature"></i></div>
+                    <h3>Report Item</h3>
+                    <p>Fill out the lost item form with accurate details and photos.</p>
+                </div>
+
+                <div class="step-card glass-card fade-in-on-scroll delay-2">
+                    <div class="step-number">02</div>
+                    <div class="step-icon"><i class="fa-solid fa-envelope-circle-check"></i></div>
+                    <h3>Get Ref ID</h3>
+                    <p>Receive a unique <strong>Reference ID</strong> via your student email instantly.</p>
+                </div>
+
+                <div class="step-card glass-card fade-in-on-scroll delay-3">
+                    <div class="step-number">03</div>
+                    <div class="step-icon"><i class="fa-solid fa-hand-holding-box"></i></div>
+                    <h3>Collect</h3>
+                    <p>Visit the Library Help Desk with your ID card to verify and claim.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="faq-section">
+            <h2 class="section-title fade-in-on-scroll">Frequently Asked Questions</h2>
+            
+            <div class="accordion-wrapper fade-in-on-scroll" id="faqList">
+                
+                <div class="accordion-item" data-keywords="collect location library where ground floor">
+                    <button class="accordion-header" onclick="toggleAccordion(this)">
+                        <span><i class="fa-solid fa-location-dot"></i> Where do I collect my item?</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="inner-content">
+                            All found items are stored at the <strong>Central Library Help Desk (Ground Floor)</strong>. 
+                            <br>Open Hours: Mon-Fri (9 AM - 5 PM).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item" data-keywords="documents id card proof verification friend">
+                    <button class="accordion-header" onclick="toggleAccordion(this)">
+                        <span><i class="fa-solid fa-id-card"></i> What documents do I need?</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="inner-content">
+                            You must bring your official <strong>College ID Card</strong>. If claiming for a friend, bring their Reference ID and an authorization letter/email.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item" data-keywords="time days keep duration expiry valuable laptop phone">
+                    <button class="accordion-header" onclick="toggleAccordion(this)">
+                        <span><i class="fa-solid fa-hourglass-half"></i> How long do you keep items?</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="inner-content">
+                            Items are held for <strong>30 days</strong>. Valuable items (laptops, wallets) are moved to the Security Office after 48 hours for extra safety.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item" data-keywords="email spam reference id lost find">
+                    <button class="accordion-header" onclick="toggleAccordion(this)">
+                        <span><i class="fa-solid fa-envelope"></i> I didn't get an email. What now?</span>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <div class="inner-content">
+                            Check your <strong>Spam/Junk</strong> folder. If still missing, you can visit the Help Desk directly and provide your name and date of loss for manual search.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div id="noResults" class="no-results-msg" style="display: none;">
+                <i class="fa-solid fa-magnifying-glass-minus"></i>
+                <p>No matching questions found.</p>
+            </div>
+        </section>
+
+        <section class="contact-banner fade-in-on-scroll">
+            <div class="banner-content">
+                <h3>Still need assistance?</h3>
+                <p>Our support team is available 24/7 for urgent inquiries.</p>
+            </div>
+            <a href="mailto:helpdesk@jis.ac.in" class="contact-btn">
+                <i class="fa-solid fa-paper-plane"></i> Contact Support
+            </a>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

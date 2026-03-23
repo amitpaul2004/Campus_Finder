@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="./img/favicon.png">
+    <title>JISU - Browse Items</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="college-header fixed-top">
+        <div class="logo-wrapper">
+            <a href="index.html" style="display: flex; align-items: center;">
+                <img src="./img/logo-light.png" alt="JIS Group Logo" class="college-logo">
+            </a>
+        </div>
+        <div class="header-title">STUDENT SERVICES PORTAL</div>
+    </header>
+
+    <section class="hero-search-section">
+        <div class="hero-content">
+            <h1>Browse Lost & Found</h1>
+            <p>Search reported items across the campus network.</p>
+            
+            <div class="floating-search-bar">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, location, or category...">
+                <div class="filter-dropdown-wrapper">
+                    <select id="filterSelect">
+                        <option value="all">Show All</option>
+                        <option value="lost">Lost Items</option>
+                        <option value="found">Found Items</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down dropdown-icon"></i>
+                </div>
+            </div>
+
+            <div class="stats-pills animate-fade-in">
+                <div class="pill total"><i class="fa-solid fa-layer-group"></i> <span id="total-count">0</span> Total</div>
+                <div class="pill lost"><i class="fa-solid fa-circle-exclamation"></i> <span id="lost-count">0</span> Lost</div>
+                <div class="pill found"><i class="fa-solid fa-circle-check"></i> <span id="found-count">0</span> Found</div>
+            </div>
+        </div>
+    </section>
+
+    <main class="browse-container">
+        
+        <div class="items-grid" id="itemsGrid">
+            <!-- Items will be injected here dynamically by Javascript -->
+             <div id="loadingIndicator" style="text-align:center; padding: 40px; grid-column: 1 / -1; width:100%;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: #1e2a5e;"></i>
+                <p style="margin-top: 10px; color: #666;">Loading items...</p>
+             </div>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <div class="empty-illustration">
+                <div class="circle-bg"></div>
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3 id="empty-title">No Results Found</h3>
+            <p id="empty-desc">We couldn't find any items matching your search.</p>
+            <button class="reset-btn" onclick="resetSearch()">View All Items</button>
+        </div>
+
+    </main>
+
+    <div id="details-modal" class="modal-overlay">
+        <div class="modal-box details-box">
+            <button class="close-modal-btn" onclick="closeDetailsModal()"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="modal-content-flex">
+                <div class="modal-image-side">
+                    <img id="modal-img" src="" alt="Item Image">
+                    <div id="modal-no-img" class="no-img-placeholder" style="display:none;">
+                        <i class="fa-solid fa-image"></i>
+                        <span>No Image Available</span>
+                    </div>
+                    <div class="modal-status-badge" id="modal-status">Found</div>
+                </div>
+
+                <div class="modal-info-side">
+                    <span class="modal-category" id="modal-category">Category</span>
+                    <h2 id="modal-title">Item Name</h2>
+                    
+                    <div class="info-grid">
+                        <div class="info-item full-width">
+                            <label>Description</label>
+                            <p id="modal-desc">Description text...</p>
+                        </div>
+                        
+                        <div class="info-item">
+                            <label>Date Lost/Found</label>
+                            <p id="modal-date"><i class="fa-regular fa-calendar"></i> <span>-</span></p>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Location</label>
+                            <p id="modal-location"><i class="fa-solid fa-location-dot"></i> <span>-</span></p>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="info-item">
+                            <label>Collector/Reporter</label>
+                            <p id="modal-collector"><i class="fa-solid fa-user"></i> <span>-</span></p>
+                        </div>
+
+                        <div class="info-item">
+                            <label>Phone Number</label>
+                            <p id="modal-phone"><i class="fa-solid fa-phone"></i> <span>-</span></p>
+                        </div>
+
+                        <div class="info-item full-width">
+                            <label>Email Address</label>
+                            <p id="modal-email"><i class="fa-solid fa-envelope"></i> <span>-</span></p>
+                        </div>
+                    </div>
+
+                    <button class="contact-btn" onclick="closeDetailsModal()">Close Details</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
