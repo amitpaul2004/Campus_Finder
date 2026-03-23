@@ -86,6 +86,19 @@ async function verifyClaim(scannedId = null) {
             document.getElementById('resStudent').innerText = currentVerifyData.student;
             document.getElementById('resStudentId').innerText = refIdDisplay; // Showing RefID here as ID
             document.getElementById('resLocation').innerText = currentVerifyData.location;
+
+            // Dynamically update the Status Badge just like the main Dashboard
+            const statusBadge = document.getElementById('resStatusBadge');
+            if (statusBadge) {
+                const rawStatus = (item.status || 'new').toLowerCase();
+                let pillText = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+                
+                if (rawStatus === 'pending') pillText = 'Verifying';
+                if (rawStatus === 'ready') pillText = 'Ready for Pickup';
+                
+                statusBadge.className = `status-badge st-${rawStatus}`;
+                statusBadge.innerText = pillText;
+            }
             
             // Check if item image is base64 or placeholder
             let imgUrl = item.image;
