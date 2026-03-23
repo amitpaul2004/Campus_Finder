@@ -15,6 +15,7 @@ const QRCode = require('qrcode'); // 1. IMPORT QR LIBRARY
 
 const connectDB = require('./config/db'); // Import DB connect function
 const Item = require('./models/Item');    // Import Item model
+const Alert = require('./models/Alert');  // Import Alert model
 
 const app = express();
 const PORT = 5000;
@@ -376,88 +377,116 @@ app.get('/api/items/track/:refId', async (req, res) => {
 // ==========================================
 app.post('/broadcast-alert', async (req, res) => {
     // 1. Destructure Data
-    const { audience, subject, body } = req.body;
-    console.log(`📢 Broadcasting to [${audience}]: ${subject}`);
-
-    // 2. Select Target Email Logic
-    let targetEmail = "";
-    switch (audience) {
-        case "All Students": 
-        case "All Students & Faculty": targetEmail = "rdxeveil@gmail.com"; break;
-        case "CSE Dept": 
-        case "CSE Department Only": targetEmail = "23cs2011016.jis@gmail.com"; break;
-        case "ECE Dept": 
-        case "ECE Department Only": targetEmail = "dimi.dey2004@gmail.com"; break;
-        case "Hostelers": 
-        case "Hostel Residents": targetEmail = "dasbedasbadal12340987@gmail.com"; break;
-        default: targetEmail = process.env.EMAIL_USER; // Fallback
-    }
+    const { audience, subject, body, sendEmail } = req.body;
+    console.log(`📢 Broadcasting to [${audience}]: ${subject} (Send Email: ${sendEmail})`);
 
     try {
-        // 3. Generate Metadata (Date/Time)
+        // 2. Generate Metadata (Date/Time)
         const now = new Date();
         const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-        // 4. Generate Broadcast QR Code
-        const qrText = `BROADCAST ALERT\nTarget: ${audience}\nSubject: ${subject}\nDate: ${dateStr}`;
-        const qrImage = await QRCode.toDataURL(qrText);
+        // 3. Save to MongoDB
+        const newAlert = new Alert({
+            audience: audience,
+            subject: subject,
+            body: body,
+            sentViaEmail: !!sendEmail,
+            time: timeStr
+        });
+        const savedAlert = await newAlert.save();
+        console.log(`✅ Saved Alert to DB ID: ${savedAlert._id}`);
 
-        // 5. Configure Broadcast Email (Maintaining Your Style)
-        const mailOptions = {
-            from: '"JISU Broadcast System" <your_email@gmail.com>',
-            to: targetEmail,
-            subject: `📢 ALERT: ${subject}`,
-            html: `
-                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-                    
-                    <div style="background-color: #f59e0b; padding: 20px; text-align: center; color: white;">
-                        <h2 style="margin: 0; text-transform: uppercase;">Campus Alert</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">Target: ${audience}</p>
-                    </div>
+        // 4. Send Email IF requested
+        if (sendEmail) {
+            // Select Target Email Logic
+            let targetEmail = "";
+            switch (audience) {
+                case "All Students": 
+                case "All Students & Faculty": targetEmail = "rdxeveil@gmail.com"; break;
+                case "CSE Dept": 
+                case "CSE Department Only": targetEmail = "23cs2011016.jis@gmail.com"; break;
+                case "ECE Dept": 
+                case "ECE Department Only": targetEmail = "dimi.dey2004@gmail.com"; break;
+                case "Hostelers": 
+                case "Hostel Residents": targetEmail = "dasbedasbadal12340987@gmail.com"; break;
+                default: targetEmail = process.env.EMAIL_USER; // Fallback
+            }
 
-                    <div style="padding: 30px; background-color: #ffffff;">
+            // Generate Broadcast QR Code
+            const qrText = `BROADCAST ALERT\nTarget: ${audience}\nSubject: ${subject}\nDate: ${dateStr}`;
+            const qrImage = await QRCode.toDataURL(qrText);
+
+            // Configure Broadcast Email
+            const mailOptions = {
+                from: '"JISU Broadcast System" <your_email@gmail.com>',
+                to: targetEmail,
+                subject: `📢 ALERT: ${subject}`,
+                html: `
+                    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
                         
-                        <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #1e2a5e; margin-bottom: 25px;">
-                            <table style="width: 100%; font-size: 14px; color: #334155;">
-                                <tr><td style="font-weight: bold; width: 60px;">DATE:</td><td>${dateStr}</td></tr>
-                                <tr><td style="font-weight: bold;">TIME:</td><td>${timeStr}</td></tr>
-                            </table>
+                        <div style="background-color: #f59e0b; padding: 20px; text-align: center; color: white;">
+                            <h2 style="margin: 0; text-transform: uppercase;">Campus Alert</h2>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">Target: ${audience}</p>
                         </div>
 
-                        <h3 style="color: #1e2a5e; margin-top: 0;">${subject}</h3>
-                        <p style="font-size: 16px; color: #475569; line-height: 1.6; margin-bottom: 30px;">
-                            ${body}
-                        </p>
+                        <div style="padding: 30px; background-color: #ffffff;">
+                            
+                            <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #1e2a5e; margin-bottom: 25px;">
+                                <table style="width: 100%; font-size: 14px; color: #334155;">
+                                    <tr><td style="font-weight: bold; width: 60px;">DATE:</td><td>${dateStr}</td></tr>
+                                    <tr><td style="font-weight: bold;">TIME:</td><td>${timeStr}</td></tr>
+                                </table>
+                            </div>
 
-                        <div style="text-align: center; margin: 30px 0; border: 2px dashed #ddd; padding: 20px; border-radius: 10px;">
-                            <h3 style="color: #1e2a5e; margin-top: 0; font-size: 16px;">Official Broadcast QR</h3>
-                            <img src="cid:broadcast-qr" alt="Broadcast QR" style="width: 150px; height: 150px;" />
+                            <h3 style="color: #1e2a5e; margin-top: 0;">${subject}</h3>
+                            <p style="font-size: 16px; color: #475569; line-height: 1.6; margin-bottom: 30px;">
+                                ${body}
+                            </p>
+
+                            <div style="text-align: center; margin: 30px 0; border: 2px dashed #ddd; padding: 20px; border-radius: 10px;">
+                                <h3 style="color: #1e2a5e; margin-top: 0; font-size: 16px;">Official Broadcast QR</h3>
+                                <img src="cid:broadcast-qr" alt="Broadcast QR" style="width: 150px; height: 150px;" />
+                            </div>
+                        </div>
+
+                        <div style="background-color: #f1f5f9; padding: 15px; text-align: center; color: #888; font-size: 12px;">
+                            &copy; 2025 JIS University. Automated Broadcast.
                         </div>
                     </div>
+                `,
+                attachments: [
+                    {
+                        filename: 'broadcast_qr.png',
+                        content: qrImage.split("base64,")[1],
+                        encoding: 'base64',
+                        cid: 'broadcast-qr'
+                    }
+                ]
+            };
+            
+            await transporter.sendMail(mailOptions);
+            console.log(`✅ Mass Email Broadcast sent successfully to ${targetEmail}`);
+        }
 
-                    <div style="background-color: #f1f5f9; padding: 15px; text-align: center; color: #888; font-size: 12px;">
-                        &copy; 2025 JIS University. Automated Broadcast.
-                    </div>
-                </div>
-            `,
-            attachments: [
-                {
-                    filename: 'broadcast_qr.png',
-                    content: qrImage.split("base64,")[1],
-                    encoding: 'base64',
-                    cid: 'broadcast-qr'
-                }
-            ]
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Broadcast sent to ${targetEmail}`);
-        res.status(200).json({ success: true, message: "Broadcast sent successfully" });
+        res.status(200).json({ success: true, message: "Broadcast processed successfully", data: savedAlert });
 
     } catch (error) {
         console.error("❌ Broadcast Error:", error);
-        res.status(500).json({ success: false, message: "Failed to send broadcast" });
+        res.status(500).json({ success: false, message: "Failed to process broadcast", error: error.message });
+    }
+});
+
+// ==========================================
+// ROUTE 3: GET BROADCAST HISTORY
+// ==========================================
+app.get('/api/alerts', async (req, res) => {
+    try {
+        const alerts = await Alert.find().sort({ createdAt: -1 }); // Newest alerts first
+        res.status(200).json({ success: true, count: alerts.length, data: alerts });
+    } catch (error) {
+        console.error("Error fetching alerts:", error);
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
 });
 
