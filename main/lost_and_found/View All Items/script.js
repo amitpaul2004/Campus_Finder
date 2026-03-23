@@ -49,6 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Format nice date
             const dateObj = new Date(item.dateReported);
+            const safeId = (item._id || 'unknown').toString();
+            // Generate or use existing ref id
+            const refId = item.refId || `#CLM-${dateObj.getFullYear()}-${safeId.substring(Math.max(0, safeId.length-4)).toUpperCase()}`;
             const friendlyDate = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
             // Create Card Element

@@ -109,7 +109,7 @@ function renderRecentActivity(items) {
             else if (diffDays === 2) dateDisplay = "Yesterday";
 
             const safeId = (item._id || 'unknown').toString();
-            const refId = `#CLM-${dateObj.getFullYear()}-${safeId.substring(Math.max(0, safeId.length-4)).toUpperCase()}`;
+            const refId = item.refId || `#CLM-${dateObj.getFullYear()}-${safeId.substring(Math.max(0, safeId.length-4)).toUpperCase()}`;
             const safeName = (item.collectorName || 'Unknown User');
             const initials = safeName.substring(0,2).toUpperCase();
 
@@ -120,7 +120,7 @@ function renderRecentActivity(items) {
             // Action button
             let actionHTML = `<button class="icon-btn" onclick="openEditModal('${safeId}')"><i class="fa-solid fa-pen"></i></button>`;
             if (rawStatus === 'returned') actionHTML = `<button class="icon-btn" style="color: green;" onclick="openEditModal('${safeId}')"><i class="fa-solid fa-check-double"></i></button>`;
-            if (rawStatus === 'expired') actionHTML = `<button class="icon-btn" style="color: #ef4444;" onclick="openEditModal('${safeId}')"><i class="fa-solid fa-trash"></i></button>`;
+            if (rawStatus === 'expired') actionHTML = `<button class="icon-btn" style="color: #ef4444;" onclick="deleteItem('${safeId}')"><i class="fa-solid fa-trash"></i></button>`;
 
             const tr = document.createElement('tr');
             tr.setAttribute('data-status', rawStatus);
@@ -207,5 +207,26 @@ async function saveStatusChange() {
         alert('Server connection error while saving.');
     } finally {
         saveBtn.innerText = originalText;
+    }
+}
+
+// --- DELETE ITEM LOGIC ---
+async function deleteItem(rowId) {
+    if(confirm("Are you sure you want to PERMANENTLY delete this expired item from the database?")) {
+        try {
+            const response = await fetch(`http://localhost:5000/api/items/${rowId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                // Instantly sync the dashboard metrics and table correctly!
+                fetchDashboardData();
+            } else {
+                alert("Failed to delete item.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Server connection error while deleting.");
+        }
     }
 }

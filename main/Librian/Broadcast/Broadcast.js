@@ -1,23 +1,21 @@
-// --- INITIAL HISTORY DATA (Demo Data) ---
-const historyData = [
-    {
-        audience: "All Students",
-        subject: "Found: Red Water Bottle",
-        body: "A red Milton water bottle was found in the Canteen. Please claim it from the front desk.",
-        time: "10:30 AM"
-    },
-    {
-        audience: "CSE Dept",
-        subject: "Lab Coat Left Behind",
-        body: "Someone left a lab coat in Lab 3. It has been submitted to the Lost & Found.",
-        time: "09:15 AM"
-    }
-];
-
 // Load History on Start
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const list = document.getElementById('historyList');
-    if(list) historyData.forEach(item => addHistoryToUI(item));
+    if(!list) return;
+
+    try {
+        const response = await fetch('http://localhost:5000/api/alerts');
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            result.data.forEach(item => addHistoryToUI(item));
+        } else {
+            list.innerHTML = '<p style="text-align: center; color: #888; margin-top: 20px;">No broadcast history found.</p>';
+        }
+    } catch (err) {
+        console.error("Failed to load history:", err);
+        list.innerHTML = '<p style="text-align: center; color: #ef4444; margin-top: 20px;">Error loading broadcast history. Ensure backend is running.</p>';
+    }
 });
 
 // --- MAIN FUNCTION: SEND BROADCAST ---
@@ -39,29 +37,30 @@ async function sendBroadcast(e) {
     btn.disabled = true;
 
     try {
-        // 3. IF CHECKBOX IS CHECKED -> SEND TO BACKEND    
-        if (sendEmail) {
-            const response = await fetch('https://uniback-backend.onrender.com/broadcast-alert', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ audience, subject, body })
-            });
-            
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message);
-            console.log("Server Response:", result);
-        } else {
-            // If email is NOT checked, just simulate a small delay for UI effect
-            await new Promise(r => setTimeout(r, 1000));
-        }
+        // 3. SEND POST TO LOCAL BACKEND
+        // The backend handles saving to DB and automatically delegates email sending!
+        const response = await fetch('http://localhost:5000/broadcast-alert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                audience: audience, 
+                subject: subject, 
+                body: body, 
+                sendEmail: sendEmail // boolean flag telling server to run nodemailer
+            })
+        });
+        
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+        console.log("Server Response:", result);
 
         // 4. Success State
         btn.innerHTML = '<i class="fa-solid fa-check"></i> Published!';
         btn.style.background = "#10b981"; // Success Green
 
-        // 5. Update the Live Feed (UI Only)
+        // 5. Update the Live Feed (UI Only, since we just saved it to DB)
         const now = new Date();
-        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const timeString = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
         
         const newItem = {
             audience: audience,
@@ -70,6 +69,13 @@ async function sendBroadcast(e) {
             time: timeString
         };
         addHistoryToUI(newItem, true);
+        
+        // Remove empty state message if it exists
+        const list = document.getElementById('historyList');
+        if (list.innerHTML.includes("No broadcast history found")) {
+            list.innerHTML = "";
+            addHistoryToUI(newItem, true); // re-add
+        }
 
         // 6. Reset Form after 2 seconds
         setTimeout(() => {
