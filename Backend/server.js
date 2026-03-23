@@ -154,7 +154,7 @@ Status: REPORTED
 // ==========================================
 app.post('/api/items/report-found', async (req, res) => {
     try {
-        const { collectorName, phoneNumber, email, itemName, category, location, dateReported, description } = req.body;
+        const { collectorName, phoneNumber, email, itemName, category, location, dateReported, description, image } = req.body;
         
         console.log(`Processing Found Item report for ${email}`);
         
@@ -168,6 +168,7 @@ app.post('/api/items/report-found', async (req, res) => {
             location,
             dateReported: new Date(dateReported),
             description,
+            image, // Includes the base64 string
             status: 'Pending'
         });
 
@@ -178,6 +179,52 @@ app.post('/api/items/report-found', async (req, res) => {
     } catch (error) {
         console.error("Error saving found item:", error);
         res.status(500).json({ success: false, message: "Server Error: Could not save item", error: error.message });
+    }
+});
+
+// ==========================================
+// ROUTE 1.6: GET ALL ITEMS (MongoDB Integration)
+// ==========================================
+app.get('/api/items', async (req, res) => {
+    try {
+        const items = await Item.find().sort({ createdAt: -1 }); // Newest first
+        res.status(200).json({ success: true, count: items.length, data: items });
+    } catch (error) {
+        console.error("Error fetching items:", error);
+        res.status(500).json({ success: false, message: "Server Error: Could not fetch items", error: error.message });
+    }
+});
+
+// ==========================================
+// ROUTE 1.7: UPDATE ITEM STATUS (Librarian)
+// ==========================================
+app.put('/api/items/:id/status', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const updatedItem = await Item.findByIdAndUpdate(
+            req.params.id, 
+            { status: status }, 
+            { new: true }
+        );
+        if (!updatedItem) return res.status(404).json({ success: false, message: "Item not found" });
+        res.status(200).json({ success: true, message: "Status updated", data: updatedItem });
+    } catch (error) {
+        console.error("Error updating status:", error);
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+});
+
+// ==========================================
+// ROUTE 1.8: DELETE ITEM (Librarian)
+// ==========================================
+app.delete('/api/items/:id', async (req, res) => {
+    try {
+        const deletedItem = await Item.findByIdAndDelete(req.params.id);
+        if (!deletedItem) return res.status(404).json({ success: false, message: "Item not found" });
+        res.status(200).json({ success: true, message: "Item deleted" });
+    } catch (error) {
+        console.error("Error deleting item:", error);
+        res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
 });
 

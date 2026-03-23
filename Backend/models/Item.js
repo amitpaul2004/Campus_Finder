@@ -41,10 +41,14 @@ const itemSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    image: {
+        type: String,     // Will store base64 string
+        required: true
+    },
     status: {
         type: String,
-        enum: ['Pending', 'Resolved'],
-        default: 'Pending'
+        enum: ['new', 'ready', 'pending', 'returned', 'expired', 'Pending', 'Resolved'], // Kept old ones just in case 
+        default: 'new'
     }
 }, {
     timestamps: true

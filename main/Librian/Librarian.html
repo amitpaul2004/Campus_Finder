@@ -45,19 +45,19 @@
 
         <div class="stats-grid">
             <div class="stat-card c-blue">
-                <div class="stat-content"><h3 class="counter" data-target="12">0</h3><p>New Reports</p></div>
+                <div class="stat-content"><h3 class="counter" id="count-new">0</h3><p>New Reports</p></div>
                 <div class="icon-box"><i class="fa-solid fa-inbox"></i></div>
             </div>
             <div class="stat-card c-orange">
-                <div class="stat-content"><h3 class="counter" data-target="5">0</h3><p>Pending Review</p></div>
+                <div class="stat-content"><h3 class="counter" id="count-pending">0</h3><p>Pending Review</p></div>
                 <div class="icon-box"><i class="fa-solid fa-hourglass-start"></i></div>
             </div>
             <div class="stat-card c-green">
-                <div class="stat-content"><h3 class="counter" data-target="28">0</h3><p>Returned</p></div>
+                <div class="stat-content"><h3 class="counter" id="count-returned">0</h3><p>Returned</p></div>
                 <div class="icon-box"><i class="fa-solid fa-handshake"></i></div>
             </div>
             <div class="stat-card c-purple">
-                <div class="stat-content"><h3 class="counter" data-target="142">0</h3><p>Inventory</p></div>
+                <div class="stat-content"><h3 class="counter" id="count-total">0</h3><p>Inventory</p></div>
                 <div class="icon-box"><i class="fa-solid fa-warehouse"></i></div>
             </div>
         </div>
@@ -81,43 +81,10 @@
                             </tr>
                         </thead>
                         <tbody id="dashboardTableBody">
-                            
-                            <tr data-status="new" id="row-1">
-                                <td>
-                                    <div class="item-name">Blue Nike Bag</div>
-                                    <div class="ref-id">#CLM-2025-001</div>
-                                </td>
-                                <td><div class="user-cell"><div class="avatar">AP</div><span>Amit Paul</span></div></td>
-                                <td>Today</td>
-                                <td><span class="status-pill st-new">New</span></td>
-                                <td>
-                                    <button class="icon-btn" onclick="openEditModal('row-1')"><i class="fa-solid fa-pen"></i></button>
-                                </td>
-                            </tr>
-
-                            <tr data-status="ready" id="row-2">
-                                <td>
-                                    <div class="item-name">Dell Laptop Charger</div>
-                                    <div class="ref-id">#CLM-2025-002</div>
-                                </td>
-                                <td><div class="user-cell"><div class="avatar">RK</div><span>Rahul K.</span></div></td>
-                                <td>Yesterday</td>
-                                <td><span class="status-pill st-ready">Ready</span></td>
-                                <td>
-                                    <button class="icon-btn" onclick="openEditModal('row-2')"><i class="fa-solid fa-pen"></i></button>
-                                </td>
-                            </tr>
-
-                            <tr data-status="pending" id="row-3">
-                                <td>
-                                    <div class="item-name">Physics Book</div>
-                                    <div class="ref-id">#CLM-2025-003</div>
-                                </td>
-                                <td><div class="user-cell"><div class="avatar">PS</div><span>Priya S.</span></div></td>
-                                <td>22 Dec</td>
-                                <td><span class="status-pill st-pending">Verify</span></td>
-                                <td>
-                                    <button class="icon-btn" onclick="openEditModal('row-3')"><i class="fa-solid fa-pen"></i></button>
+                            <tr id="dashboardLoadingRow">
+                                <td colspan="5" style="text-align:center; padding: 40px;">
+                                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: #1e2a5e;"></i>
+                                    <p style="margin-top: 10px; color: #666;">Loading recent activity...</p>
                                 </td>
                             </tr>
                         </tbody>
