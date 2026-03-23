@@ -90,99 +90,10 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    
-                    <tr data-status="new" id="row-1">
-                        <td>
-                            <div class="item-meta">
-                                <div class="icon-box blue"><i class="fa-solid fa-bag-shopping"></i></div>
-                                <div>
-                                    <div class="item-name">Blue Nike Bag</div>
-                                    <div class="ref-id">#CLM-2025-001</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><div class="user-cell"><div class="avatar">AP</div><span>Amit Paul</span></div></td>
-                        <td>Jan 01, 2026</td>
-                        <td>Library</td>
-                        <td><span class="status-pill st-new">New</span></td>
-                        <td>
-                            <button class="action-btn" onclick="openEditModal('row-1')"><i class="fa-solid fa-pen"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr data-status="ready" id="row-2">
-                        <td>
-                            <div class="item-meta">
-                                <div class="icon-box green"><i class="fa-solid fa-laptop"></i></div>
-                                <div>
-                                    <div class="item-name">Dell Laptop Charger</div>
-                                    <div class="ref-id">#CLM-2025-002</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><div class="user-cell"><div class="avatar">RK</div><span>Rahul K.</span></div></td>
-                        <td>Dec 31, 2025</td>
-                        <td>Canteen</td>
-                        <td><span class="status-pill st-ready">Ready</span></td>
-                        <td>
-                            <button class="action-btn" onclick="openEditModal('row-2')"><i class="fa-solid fa-pen"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr data-status="pending" id="row-3">
-                        <td>
-                            <div class="item-meta">
-                                <div class="icon-box orange"><i class="fa-solid fa-book"></i></div>
-                                <div>
-                                    <div class="item-name">Physics Book</div>
-                                    <div class="ref-id">#CLM-2025-003</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><div class="user-cell"><div class="avatar">PS</div><span>Priya S.</span></div></td>
-                        <td>Dec 22, 2025</td>
-                        <td>Lab 3</td>
-                        <td><span class="status-pill st-pending">Verify</span></td>
-                        <td>
-                            <button class="action-btn" onclick="openEditModal('row-3')"><i class="fa-solid fa-pen"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr data-status="returned" id="row-4">
-                        <td>
-                            <div class="item-meta">
-                                <div class="icon-box purple"><i class="fa-solid fa-key"></i></div>
-                                <div>
-                                    <div class="item-name">Car Keys (Honda)</div>
-                                    <div class="ref-id">#CLM-2025-004</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><div class="user-cell"><div class="avatar">MD</div><span>Manish D.</span></div></td>
-                        <td>Dec 20, 2025</td>
-                        <td>Parking Lot</td>
-                        <td><span class="status-pill st-returned">Returned</span></td>
-                        <td>
-                            <button class="action-btn" style="color: green;"><i class="fa-solid fa-check-double"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr data-status="expired" id="row-5">
-                        <td>
-                            <div class="item-meta">
-                                <div class="icon-box red"><i class="fa-solid fa-umbrella"></i></div>
-                                <div>
-                                    <div class="item-name">Red Umbrella</div>
-                                    <div class="ref-id">#CLM-2025-005</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><div class="user-cell"><div class="avatar">SN</div><span>Sneha N.</span></div></td>
-                        <td>Dec 18, 2025</td>
-                        <td>Main Gate</td>
-                        <td><span class="status-pill st-expired">Expired</span></td>
-                        <td>
-                            <button class="action-btn delete" onclick="deleteRow('row-5')"><i class="fa-solid fa-trash"></i></button>
+                    <tr id="loadingRow">
+                        <td colspan="6" style="text-align:center; padding: 40px;">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: #1e2a5e;"></i>
+                            <p style="margin-top: 10px; color: #666;">Loading activity log...</p>
                         </td>
                     </tr>
                 </tbody>
