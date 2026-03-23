@@ -109,7 +109,7 @@ function renderRecentActivity(items) {
             else if (diffDays === 2) dateDisplay = "Yesterday";
 
             const safeId = (item._id || 'unknown').toString();
-            const refId = `#CLM-${dateObj.getFullYear()}-${safeId.substring(Math.max(0, safeId.length-4)).toUpperCase()}`;
+            const refId = item.refId || `#CLM-${dateObj.getFullYear()}-${safeId.substring(Math.max(0, safeId.length-4)).toUpperCase()}`;
             const safeName = (item.collectorName || 'Unknown User');
             const initials = safeName.substring(0,2).toUpperCase();
 

@@ -49,6 +49,10 @@ const itemSchema = new mongoose.Schema({
         type: String,
         enum: ['new', 'ready', 'pending', 'returned', 'expired', 'Pending', 'Resolved'], // Kept old ones just in case 
         default: 'new'
+    },
+    refId: {
+        type: String,
+        default: ''
     }
 }, {
     timestamps: true

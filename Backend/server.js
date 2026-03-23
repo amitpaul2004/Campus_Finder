@@ -150,6 +150,112 @@ Status: REPORTED
 });
 
 // ==========================================
+// ROUTE 1.2: REPORT LOST ITEM (MongoDB + Email)
+// ==========================================
+app.post('/api/items/report-lost', async (req, res) => {
+    try {
+        const { collectorName, phoneNumber, email, itemName, category, location, dateReported, description, image, refId } = req.body;
+        
+        console.log(`Processing Lost Item report for ${email} | Ref: ${refId}`);
+        
+        // 1. SAVE TO MONGODB
+        const newItem = new Item({
+            type: 'Lost',
+            collectorName,
+            phoneNumber,
+            email,
+            itemName,
+            category,
+            location,
+            dateReported: new Date(dateReported),
+            description,
+            image: image || 'none', // Includes base64 or placeholder if missing
+            status: 'new', // Lowercase enum requirement
+            refId: refId // Save the matching QR ID to MongoDB
+        });
+
+        const savedItem = await newItem.save();
+        console.log(`Saved Lost Item to DB: ${savedItem._id}`);
+
+        // 2. GENERATE QR CODE DATA
+        const qrData = `JIS UNIVERSITY REPORT
+-----------------------
+Ref ID: ${refId}
+Item: ${itemName}
+Student: ${collectorName}
+Date: ${dateReported}
+Status: REPORTED LOST
+-----------------------`;
+
+        const qrImage = await QRCode.toDataURL(qrData);
+
+        // 3. SEND HTML EMAIL WITH QR
+        const mailOptions = {
+            from: '"JISU Student Services" <your_email@gmail.com>',
+            to: email, // use the unified 'email' field
+            subject: `ACTION REQUIRED: Lost Item Report Submitted (${refId})`,
+            html: `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #1e2a5e; padding: 20px; text-align: center; color: white;">
+                        <h2 style="margin: 0;">Lost Item Report Received</h2>
+                    </div>
+                    <div style="padding: 30px; background-color: #ffffff;">
+                        <p>Dear <strong>${collectorName}</strong>,</p>
+                        <p>Your lost item report has been successfully logged in our system and dashboard.</p>
+
+                        <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+                            <p style="margin: 5px 0;"><strong>Ref ID:</strong> <span style="font-family: monospace; color: #1e2a5e;">${refId}</span></p>
+                            <p style="margin: 5px 0;"><strong>Item:</strong> ${itemName}</p>
+                            <p style="margin: 5px 0;"><strong>Category:</strong> ${category}</p>
+                            <p style="margin: 5px 0;"><strong>Date:</strong> ${dateReported}</p>
+                            <p style="margin: 5px 0;"><strong>Location:</strong> ${location}</p>
+                        </div>
+
+                        <div style="text-align: center; margin: 30px 0; border: 2px dashed #ddd; padding: 20px; border-radius: 10px;">
+                            <h3 style="color: #1e2a5e; margin-top: 0;">Verification QR Code</h3>
+                            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Show this to the Librarian to verify your identity if the item is found.</p>
+                            <img src="cid:unique-qrcode-id" alt="Report QR Code" style="width: 180px; height: 180px;" />
+                        </div>
+
+                        <div style="background-color: #fffbeb; border: 1px solid #fcd34d; padding: 15px; border-radius: 6px; margin-top: 25px;">
+                            <h3 style="color: #92400e; margin-top: 0; font-size: 16px;">⚠️ Next Steps</h3>
+                            <p style="color: #b45309; margin-bottom: 0; font-size: 14px;">
+                                We will notify you if an item matching this description is turned in to the library.
+                            </p>
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                        <div style="text-align: center;">
+                             <a href="https://university-lost-found-83zs.vercel.app/" style="display: inline-block; background-color: #1e2a5e; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 14px; margin-top: 5px;">Check Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            `,
+            attachments: [{
+                filename: 'qrcode.png',
+                content: qrImage.split("base64,")[1],
+                encoding: 'base64',
+                cid: 'unique-qrcode-id'
+            }]
+        };
+
+        // Send Email but don't crash if it fails (the DB saved!)
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log(`Email Sent Successfully to ${email}`);
+        } catch(emailErr) {
+            console.error("Warning: DB saved but email failed:", emailErr.message);
+        }
+
+        res.status(201).json({ success: true, message: "Item reported and email sent successfully", data: savedItem });
+
+    } catch (error) {
+        console.error("Error saving lost item:", error);
+        res.status(500).json({ success: false, message: "Server Error: Could not save lost item", error: error.message });
+    }
+});
+
+// ==========================================
 // ROUTE 1.5: REPORT FOUND ITEM (MongoDB Integration)
 // ==========================================
 app.post('/api/items/report-found', async (req, res) => {
@@ -158,6 +264,10 @@ app.post('/api/items/report-found', async (req, res) => {
         
         console.log(`Processing Found Item report for ${email}`);
         
+        // Auto-generate refId for Found items since the frontend doesn't supply it!
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        const autoRefId = `#CLM-${new Date().getFullYear()}-${randomNum}`;
+
         const newItem = new Item({
             type: 'Found',
             collectorName,
@@ -169,7 +279,8 @@ app.post('/api/items/report-found', async (req, res) => {
             dateReported: new Date(dateReported),
             description,
             image, // Includes the base64 string
-            status: 'Pending'
+            status: 'Pending',
+            refId: autoRefId
         });
 
         const savedItem = await newItem.save();
@@ -225,6 +336,38 @@ app.delete('/api/items/:id', async (req, res) => {
     } catch (error) {
         console.error("Error deleting item:", error);
         res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+});
+
+// ==========================================
+// ROUTE 1.9: TRACK CLAIM STATUS (Lookup by RefID)
+// ==========================================
+app.get('/api/items/track/:refId', async (req, res) => {
+    try {
+        const refIdParam = req.params.refId.toUpperCase();
+        console.log(`Tracking request for Ref ID: ${refIdParam}`);
+        
+        let item = await Item.findOne({ refId: new RegExp(`^${refIdParam}$`, 'i') });
+
+        // Fallback for older items or Found items that didn't generate a native refId!
+        // The Librarian script generated pseudo-IDs using the last 4 characters of the _id string.
+        if (!item) {
+            const pseudoEnding = refIdParam.split('-').pop(); // Extracts "8542" from "#CLM-2026-8542"
+            if (pseudoEnding && pseudoEnding.length >= 4) {
+                // Find all items and check if their stringified _id ends with this exact string natively
+                const allItems = await Item.find({});
+                item = allItems.find(i => i._id.toString().toUpperCase().endsWith(pseudoEnding));
+            }
+        }
+
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found' });
+        }
+
+        res.status(200).json({ success: true, data: item });
+    } catch (error) {
+        console.error("Error looking up item:", error);
+        res.status(500).json({ success: false, message: "Error looking up item" });
     }
 });
 
