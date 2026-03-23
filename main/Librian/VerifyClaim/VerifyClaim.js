@@ -1,29 +1,11 @@
-// --- 1. DEFINE YEARS ---
+// --- 1. DEFINE YEARS & GLOBALS ---
 const today = new Date();
 const currentYear = today.getFullYear();
 const lastYear = currentYear - 1;
 
-// --- 2. MOCK DATABASE ---
-const claimsDB = {
-    [`CLM-${currentYear}-001`]: {
-        item: "Blue Nike Bag",
-        student: "Amit Paul",
-        id: `JIS/CSE/${currentYear}/001`,
-        location: "Library, 2nd Floor",
-        status: "New",
-        image: "https://m.media-amazon.com/images/I/51w+jK-6uUL._AC_UY1100_.jpg" 
-    },
-    [`CLM-${currentYear}-002`]: {
-        item: "Dell Laptop Charger",
-        student: "Rahul K.",
-        id: `JIS/ECE/${currentYear}/042`,
-        location: "Canteen",
-        status: "Ready",
-        image: "https://m.media-amazon.com/images/I/61M40m+fF0L.jpg"
-    }
-};
-
 let currentRefId = ""; 
+let currentDbId = null; // Store backend _id for updating status
+let currentVerifyData = null; // Live session data for Receipt Generation
 let html5QrcodeScanner = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -36,7 +18,7 @@ function handleEnter(e) {
 }
 
 // --- VERIFY LOGIC ---
-function verifyClaim(scannedId = null) {
+async function verifyClaim(scannedId = null) {
     const input = document.getElementById('refInput');
     currentRefId = (scannedId || input.value).trim().toUpperCase();
     
@@ -71,44 +53,105 @@ function verifyClaim(scannedId = null) {
     btn.style.opacity = "0.8";
     btn.disabled = true;
 
-    setTimeout(() => {
+    try {
+        const response = await fetch(`http://localhost:5000/api/items/track/${encodeURIComponent(currentRefId)}`);
+        
         btn.innerHTML = originalText;
         btn.style.opacity = "1";
         btn.disabled = false;
         resultContainer.style.display = 'block';
 
-        if (claimsDB[currentRefId]) {
-            const data = claimsDB[currentRefId];
+        if (response.ok) {
+            const result = await response.json();
+            const item = result.data;
+
+            // Global store ID for 'markAsReturned' to use
+            currentDbId = item._id;
             
-            document.getElementById('resItemName').innerText = data.item;
-            document.getElementById('resStudent').innerText = data.student;
-            document.getElementById('resStudentId').innerText = data.id || "N/A";
-            document.getElementById('resLocation').innerText = data.location || "Reported via Email";
+            // Generate display ref if native is missing
+            const safeId = item._id.toString();
+            const dateObj = new Date(item.dateReported);
+            const refIdDisplay = item.refId || `#CLM-${dateObj.getFullYear()}-${safeId.substring(Math.max(0, safeId.length-4)).toUpperCase()}`;
+
+            // Save for the Receipt Generator
+            currentVerifyData = {
+                item: item.itemName,
+                student: item.collectorName || "Unknown Student",
+                id: refIdDisplay,
+                location: item.location || "Reported via Web",
+                status: item.status
+            };
+
+            document.getElementById('resItemName').innerText = item.itemName;
+            document.getElementById('resStudent').innerText = currentVerifyData.student;
+            document.getElementById('resStudentId').innerText = refIdDisplay; // Showing RefID here as ID
+            document.getElementById('resLocation').innerText = currentVerifyData.location;
             
-            const imgUrl = data.image || "https://cdn-icons-png.flaticon.com/512/679/679821.png";
+            // Check if item image is base64 or placeholder
+            let imgUrl = item.image;
+            if (!imgUrl || imgUrl === 'none' || imgUrl === "") {
+                imgUrl = "https://cdn-icons-png.flaticon.com/512/679/679821.png";
+            }
             document.getElementById('resItemImage').src = imgUrl;
+
+            // Auto-disable handover if already returned or expired
+            const statusLower = (item.status || "").toLowerCase();
+            if (statusLower === 'returned' || statusLower === 'expired') {
+                handoverBtn.innerHTML = `<i class="fa-solid fa-${statusLower === 'returned' ? 'check-double' : 'ban'}"></i> Already ${statusLower}`;
+                handoverBtn.style.background = "#0f172a"; 
+                handoverBtn.disabled = true;
+            }
             
             successCard.style.display = 'block';
         } else {
+            currentDbId = null;
+            currentVerifyData = null;
             document.getElementById('invalidRef').innerText = currentRefId;
             errorCard.style.display = 'block';
         }
         
         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 600);
+
+    } catch (err) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert("Server connection error: Please make sure 'node server.js' is running.");
+        console.error(err);
+    }
 }
 
 // --- HANDOVER ACTION ---
-function markAsReturned() {
+async function markAsReturned() {
+    if (!currentDbId) return;
+
     const btn = document.querySelector('.btn-primary');
-    
-    // Change button to "Complete" state
-    btn.innerHTML = '<i class="fa-solid fa-check"></i> Handover Complete';
-    btn.style.background = "#0f172a"; 
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Updating...';
     btn.disabled = true;
 
-    // Optional: Alert the user
-    // alert("Success! The item has been marked as returned.");
+    try {
+        const response = await fetch(`http://localhost:5000/api/items/${currentDbId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'returned' })
+        });
+        
+        if (response.ok) {
+            // Change button to "Complete" state
+            btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Handover Complete';
+            btn.style.background = "#15803d"; // Green success color
+            // btn remains disabled to prevent multiple clicks
+        } else {
+            alert('Failed to update status on server.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Server connection error while saving.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }
 
 // --- CAMERA SCANNER ---
@@ -135,28 +178,14 @@ function onScanSuccess(decodedText, decodedResult) {
     let extractedId = null;
     const idMatch = decodedText.match(/(CLM-\d{4}-\d{3,})/i); 
     if(idMatch) {
-        extractedId = idMatch[0];
+        // Must prepend # to match database strict formats
+        extractedId = "#" + idMatch[0].toUpperCase();
     } else {
         alert("Invalid QR Code: No Reference ID found.");
         return;
     }
 
-    // Auto-Add Logic for QR codes not in static DB
-    if (!claimsDB[extractedId]) {
-        const itemMatch = decodedText.match(/Item:\s*(.*)/i);
-        const studentMatch = decodedText.match(/Student:\s*(.*)/i);
-        const imageMatch = decodedText.match(/\|Img:(.*?)\|/);
-
-        claimsDB[extractedId] = {
-            item: itemMatch ? itemMatch[1].trim() : "Scanned Item",
-            student: studentMatch ? studentMatch[1].trim() : "Student",
-            id: "Verified via QR", 
-            location: "Front Desk (Scanned)",
-            status: "Just Verified",
-            image: imageMatch ? imageMatch[1].trim() : "https://cdn-icons-png.flaticon.com/512/679/679821.png"
-        };
-    }
-
+    // Immediately trigger live backend verification exactly like manual text input!
     verifyClaim(extractedId);
 }
 
@@ -179,21 +208,24 @@ function resetVerify() {
     document.getElementById('resultContainer').style.display = 'none';
     document.getElementById('refInput').focus();
     currentRefId = "";
+    currentDbId = null;
+    currentVerifyData = null;
 }
 
 function downloadReceipt() {
-    if (!claimsDB[currentRefId]) return;
-    const data = claimsDB[currentRefId];
+    if (!currentVerifyData) return;
+    const data = currentVerifyData;
     const dateStr = new Date().toLocaleDateString();
     const jisGroupLogo = "https://www.jisgroup.org/images/logo.png";
     
-    const qrText = `JIS UNIVERSITY CLAIM\nRef: ${currentRefId}\nStudent: ${data.student}\nItem: ${data.item}\nStatus: VERIFIED`;
+    // Create live QR Code for Receipt
+    const qrText = `JIS UNIVERSITY CLAIM\nRef: ${data.id}\nStudent: ${data.student}\nItem: ${data.item}\nStatus: VERIFIED`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}`;
 
     const receiptHTML = `
         <html>
         <head>
-            <title>Receipt-${currentRefId}</title>
+            <title>Receipt-${data.id}</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 40px; color: #000; max-width: 800px; margin: 0 auto; border: 1px solid #ddd; }
                 .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px; }
@@ -221,7 +253,7 @@ function downloadReceipt() {
             </div>
             <div class="content">
                 <div style="text-align: right; margin-bottom: 25px;"><strong>Date:</strong> ${dateStr}</div>
-                <div class="row"><span class="label">Reference ID:</span><span class="value">${currentRefId}</span></div>
+                <div class="row"><span class="label">Reference ID:</span><span class="value">${data.id}</span></div>
                 <div class="row"><span class="label">Received From:</span><span class="value">JIS University Lost & Found Dept.</span></div>
                 <div class="row"><span class="label">Student Name:</span><span class="value">${data.student}</span></div>
                 <div class="row"><span class="label">Item Details:</span><span class="value">${data.item}</span></div>
