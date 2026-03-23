@@ -154,7 +154,7 @@ Status: REPORTED
 // ==========================================
 app.post('/api/items/report-found', async (req, res) => {
     try {
-        const { collectorName, phoneNumber, email, itemName, category, location, dateReported, description } = req.body;
+        const { collectorName, phoneNumber, email, itemName, category, location, dateReported, description, image } = req.body;
         
         console.log(`Processing Found Item report for ${email}`);
         
@@ -168,6 +168,7 @@ app.post('/api/items/report-found', async (req, res) => {
             location,
             dateReported: new Date(dateReported),
             description,
+            image, // Includes the base64 string
             status: 'Pending'
         });
 
