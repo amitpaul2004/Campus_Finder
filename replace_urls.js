@@ -21,12 +21,12 @@ let updatedCount = 0;
 
 files.forEach(f => {
     let content = fs.readFileSync(f, 'utf8');
-    if (content.includes('https://uniback-api.onrender.com')) {
-        content = content.replace(/https:\/\/uniback-api.onrender.com/g, 'http://localhost:5000');
+    if (content.includes('http://localhost:5000')) {
+        content = content.replace(/http:\/\/localhost:5000/g, 'https://uniback-api.onrender.com');
         fs.writeFileSync(f, content, 'utf8');
-        console.log('✅ Reverted: ' + path.basename(f));
+        console.log('✅ Updated to Production: ' + path.basename(f));
         updatedCount++;
     }
 });
 
-console.log(`\n🎉 Process Complete! Successfully reverted ${updatedCount} files back to localhost.`);
+console.log(`\n🎉 Process Complete! Successfully prepped ${updatedCount} files for Vercel deployment.`);

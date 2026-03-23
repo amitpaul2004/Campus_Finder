@@ -31,7 +31,7 @@ async function searchItem() {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`http://localhost:5000/api/items/track/${encodeURIComponent(id)}`);
+        const response = await fetch(`https://uniback-api.onrender.com/api/items/track/${encodeURIComponent(id)}`);
         
         btn.innerHTML = originalContent;
         btn.disabled = false;
@@ -117,7 +117,7 @@ async function saveStatus() {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`http://localhost:5000/api/items/${currentDbId}/status`, {
+        const response = await fetch(`https://uniback-api.onrender.com/api/items/${currentDbId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus.toLowerCase() })

@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- 0. FETCH DATA FROM BACKEND ---
     async function fetchItems() {
         try {
-            const response = await fetch('http://localhost:5000/api/items');
+            const response = await fetch('https://uniback-api.onrender.com/api/items');
             const result = await response.json();
 
             if (result.success && result.data) {

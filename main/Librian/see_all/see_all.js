@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- FETCH DATA FROM BACKEND ---
 async function fetchItems() {
     try {
-        const response = await fetch('http://localhost:5000/api/items');
+        const response = await fetch('https://uniback-api.onrender.com/api/items');
         const result = await response.json();
 
         if (result.success && result.data) {
@@ -161,7 +161,7 @@ async function saveStatusChange() {
     saveBtn.innerText = "Saving...";
 
     try {
-        const response = await fetch(`http://localhost:5000/api/items/${currentRowId}/status`, {
+        const response = await fetch(`https://uniback-api.onrender.com/api/items/${currentRowId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -224,7 +224,7 @@ async function deleteRow(rowId) {
         const row = document.getElementById(rowId);
         
         try {
-            const response = await fetch(`http://localhost:5000/api/items/${rowId}`, {
+            const response = await fetch(`https://uniback-api.onrender.com/api/items/${rowId}`, {
                 method: 'DELETE'
             });
 

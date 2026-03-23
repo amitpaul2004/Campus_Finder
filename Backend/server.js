@@ -30,20 +30,11 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 // --- UPDATED EMAIL CONFIGURATION ---
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,       // Use SSL Port
-    secure: true,    // Must be true for port 465
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    },
-    // ⬇️ ADD THIS TO FIX TIMEOUTS ⬇️
-    tls: {
-        // Do not fail on invalid certs
-        rejectUnauthorized: false
-    },
-    // Force IPv4 (Fixes Render/Gmail timeout issues)
-    family: 4 
+    }
 });
 
 // Add a verification check to see if connection works on startup
@@ -490,6 +481,10 @@ app.get('/api/alerts', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
