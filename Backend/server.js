@@ -110,18 +110,12 @@ app.post('/send-report', async (req, res) => {
     console.log(`Processing report for ${userEmail} | Ref: ${refId}`);
 
     try {
-        // 3. GENERATE QR CODE DATA
-        const qrData = `JIS UNIVERSITY REPORT
------------------------
-Ref ID: ${refId}
-Item: ${itemName}
-Student: ${collectorName}
-Date: ${dateLost}
-Status: REPORTED
------------------------`;
+        // 3. GENERATE QR CODE DATA (Simplified for email reliability)
+        const qrData = `RefID: ${refId} | Item: ${itemName} | Student: ${collectorName} | Date: ${dateLost}`;
 
-        // 4. CREATE QR IMAGE URL (using Google Charts API - most reliable for email)
-        const qrImage = `https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=${encodeURIComponent(qrData)}`;
+        // 4. CREATE QR IMAGE URL (using Google Charts API - simplified for maximum compatibility)
+        const qrImage = `https://chart.googleapis.com/chart?chs=180x180&cht=qr&chld=M|1&chl=${encodeURIComponent(qrData)}`;
+        console.log(`✅ Generated QR URL: ${qrImage}`);
 
         const mailOptions = {
             from: `"JISU Student Services" <${process.env.BREVO_USER}>`,
@@ -173,7 +167,7 @@ Status: REPORTED
             attachments: []
         };
 
-        await sendEmailViaAPI(userEmail, `ACTION REQUIRED: Report Submitted (${refId})`, mailOptions.html, mailOptions.attachments[0]);
+        await sendEmailViaAPI(userEmail, `ACTION REQUIRED: Report Submitted (${refId})`, mailOptions.html, null);
         res.status(200).json({ message: "Report Email Sent Successfully" });
 
     } catch (error) {
