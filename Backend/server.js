@@ -38,7 +38,8 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.BREVO_USER, // Your Brevo account login email
         pass: process.env.BREVO_PASS  // Brevo SMTP key (NOT your login password)
-    }
+    },
+    family: 4 // Force IPv4 to prevent connection timeouts on Render
 });
 
 // Startup connection check
