@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 3. Send to New Database Endpoint
                 try {
-                    const response = await fetch('http://localhost:5000/api/items/report-lost', {
+                    const response = await fetch('https://uniback-api.onrender.com/api/items/report-lost', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

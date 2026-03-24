@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(!list) return;
 
     try {
-        const response = await fetch('http://localhost:5000/api/alerts');
+        const response = await fetch('https://uniback-api.onrender.com/api/alerts');
         const result = await response.json();
         
         if (result.success && result.data.length > 0) {
@@ -39,7 +39,7 @@ async function sendBroadcast(e) {
     try {
         // 3. SEND POST TO LOCAL BACKEND
         // The backend handles saving to DB and automatically delegates email sending!
-        const response = await fetch('http://localhost:5000/broadcast-alert', {
+        const response = await fetch('https://uniback-api.onrender.com/broadcast-alert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 

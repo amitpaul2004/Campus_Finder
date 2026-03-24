@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchDashboardData() {
     try {
-        const response = await fetch('http://localhost:5000/api/items');
+        const response = await fetch('https://uniback-api.onrender.com/api/items');
         const result = await response.json();
 
         if(result.success && result.data) {
@@ -189,7 +189,7 @@ async function saveStatusChange() {
     saveBtn.innerText = "Saving...";
 
     try {
-        const response = await fetch(`http://localhost:5000/api/items/${currentRowId}/status`, {
+        const response = await fetch(`https://uniback-api.onrender.com/api/items/${currentRowId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -214,7 +214,7 @@ async function saveStatusChange() {
 async function deleteItem(rowId) {
     if(confirm("Are you sure you want to PERMANENTLY delete this expired item from the database?")) {
         try {
-            const response = await fetch(`http://localhost:5000/api/items/${rowId}`, {
+            const response = await fetch(`https://uniback-api.onrender.com/api/items/${rowId}`, {
                 method: 'DELETE'
             });
 

@@ -54,7 +54,7 @@ async function verifyClaim(scannedId = null) {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`http://localhost:5000/api/items/track/${encodeURIComponent(currentRefId)}`);
+        const response = await fetch(`https://uniback-api.onrender.com/api/items/track/${encodeURIComponent(currentRefId)}`);
         
         btn.innerHTML = originalText;
         btn.style.opacity = "1";
@@ -143,7 +143,7 @@ async function markAsReturned() {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`http://localhost:5000/api/items/${currentDbId}/status`, {
+        const response = await fetch(`https://uniback-api.onrender.com/api/items/${currentDbId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'returned' })

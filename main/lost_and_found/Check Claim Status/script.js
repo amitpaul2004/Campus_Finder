@@ -34,7 +34,7 @@ async function fetchClaimStatus() {
 
     try {
         // Fetch from the backend!
-        const url = `http://localhost:5000/api/items/track/${encodeURIComponent(input)}`;
+        const url = `https://uniback-api.onrender.com/api/items/track/${encodeURIComponent(input)}`;
         const response = await fetch(url);
         
         let result;

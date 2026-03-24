@@ -8,50 +8,48 @@
 require('dotenv').config(); 
 
 const express = require('express');
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const QRCode = require('qrcode'); // 1. IMPORT QR LIBRARY
+const QRCode = require('qrcode');
 
-const connectDB = require('./config/db'); // Import DB connect function
-const Item = require('./models/Item');    // Import Item model
-const Alert = require('./models/Alert');  // Import Alert model
+const connectDB = require('./config/db');
+const Item = require('./models/Item');
+const Alert = require('./models/Alert');
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
 connectDB();
 
 app.use(cors());
-// Increase limit for Image Uploads
-app.use(bodyParser.json({ limit: '10mb' })); 
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-// --- UPDATED EMAIL CONFIGURATION ---
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,        // ✅ Port 587 (STARTTLS) — Render blocks 465
-    secure: false,    // false = STARTTLS upgrade after connect
-    requireTLS: true, // Force TLS upgrade
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false // Allow self-signed certs on Render
-    },
-    family: 4  // Force IPv4 (prevents IPv6 timeout issues on Render)
-});
+// --- SENDGRID EMAIL SETUP (HTTP API — bypasses Render SMTP blocks) ---
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+console.log("✅ SendGrid email client initialized");
 
-// Add a verification check to see if connection works on startup
-transporter.verify(function (error, success) {
-    if (error) {
-        console.log("❌ Email Server Error: ", error);
-    } else {
-        console.log("✅ Email Server is Ready to Send messages");
+// Reusable email helper
+async function sendEmail({ to, subject, html, qrBase64, qrCid, qrFilename }) {
+    const msg = {
+        from: { email: process.env.EMAIL_USER, name: 'JISU Student Services' },
+        to: to,
+        subject: subject,
+        html: html,
+    };
+    if (qrBase64) {
+        msg.attachments = [{
+            content: qrBase64,
+            filename: qrFilename || 'qrcode.png',
+            type: 'image/png',
+            disposition: 'inline',
+            content_id: qrCid || 'unique-qrcode-id'
+        }];
     }
-});
+    await sgMail.send(msg);
+}
 
 // --- ROUTE 0: TEST SERVER STATUS ---
 app.get('/', (req, res) => {
@@ -128,17 +126,16 @@ Status: REPORTED
                     </div>
                 </div>
             `,
-            attachments: [
-                {
-                    filename: 'qrcode.png',
-                    content: qrImage.split("base64,")[1],
-                    encoding: 'base64',
-                    cid: 'unique-qrcode-id'
-                }
-            ]
         };
 
-        await transporter.sendMail(mailOptions);
+        await sendEmail({
+            to: userEmail,
+            subject: mailOptions.subject,
+            html: mailOptions.html,
+            qrBase64: qrImage.split("base64,")[1],
+            qrCid: 'unique-qrcode-id',
+            qrFilename: 'qrcode.png'
+        });
         console.log(`Email Sent Successfully to ${userEmail}`);
         res.status(200).json({ message: "Report Email Sent Successfully" });
 
@@ -230,17 +227,18 @@ Status: REPORTED LOST
                     </div>
                 </div>
             `,
-            attachments: [{
-                filename: 'qrcode.png',
-                content: qrImage.split("base64,")[1],
-                encoding: 'base64',
-                cid: 'unique-qrcode-id'
-            }]
         };
 
         // Send Email but don't crash if it fails (the DB saved!)
         try {
-            await transporter.sendMail(mailOptions);
+            await sendEmail({
+                to: email,
+                subject: mailOptions.subject,
+                html: mailOptions.html,
+                qrBase64: qrImage.split("base64,")[1],
+                qrCid: 'unique-qrcode-id',
+                qrFilename: 'qrcode.png'
+            });
             console.log(`Email Sent Successfully to ${email}`);
         } catch(emailErr) {
             console.error("Warning: DB saved but email failed:", emailErr.message);
@@ -453,17 +451,16 @@ app.post('/broadcast-alert', async (req, res) => {
                         </div>
                     </div>
                 `,
-                attachments: [
-                    {
-                        filename: 'broadcast_qr.png',
-                        content: qrImage.split("base64,")[1],
-                        encoding: 'base64',
-                        cid: 'broadcast-qr'
-                    }
-                ]
             };
-            
-            await transporter.sendMail(mailOptions);
+
+            await sendEmail({
+                to: targetEmail,
+                subject: mailOptions.subject,
+                html: mailOptions.html,
+                qrBase64: qrImage.split("base64,")[1],
+                qrCid: 'broadcast-qr',
+                qrFilename: 'broadcast_qr.png'
+            });
             console.log(`✅ Mass Email Broadcast sent successfully to ${targetEmail}`);
         }
 
