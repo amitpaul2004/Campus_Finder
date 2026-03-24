@@ -241,7 +241,8 @@ Status: REPORTED LOST
             });
             console.log(`Email Sent Successfully to ${email}`);
         } catch(emailErr) {
-            console.error("Warning: DB saved but email failed:", emailErr.message);
+            const errBody = emailErr.response ? JSON.stringify(emailErr.response.body) : emailErr.message;
+            console.error("⚠️ Warning: DB saved but email failed:", errBody);
         }
 
         res.status(201).json({ success: true, message: "Item reported and email sent successfully", data: savedItem });
