@@ -113,9 +113,9 @@ app.post('/send-report', async (req, res) => {
         // 3. GENERATE QR CODE DATA (Simplified for email reliability)
         const qrData = `RefID: ${refId} | Item: ${itemName} | Student: ${collectorName} | Date: ${dateLost}`;
 
-        // 4. CREATE QR IMAGE URL (using Google Charts API - simplified for maximum compatibility)
-        const qrImage = `https://chart.googleapis.com/chart?chs=180x180&cht=qr&chld=M|1&chl=${encodeURIComponent(qrData)}`;
-        console.log(`✅ Generated QR URL: ${qrImage}`);
+        // 4. CREATE QR IMAGE URL (using QRServer API - standard for professional emails)
+        const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
+        console.log(`✅ QR URL Generated: ${qrImage}`);
 
         const mailOptions = {
             from: `"JISU Student Services" <${process.env.BREVO_USER}>`,
@@ -207,8 +207,9 @@ app.post('/api/items/report-lost', async (req, res) => {
         // 2. GENERATE QR CODE DATA (Simplified for email reliability)
         const qrData = `RefID: ${refId} | Item: ${itemName} | Student: ${collectorName} | Date: ${dateReported}`;
 
-        // 3. CREATE QR IMAGE URL (using Google Charts API)
-        const qrImage = `https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=${encodeURIComponent(qrData)}`;
+        // 3. CREATE QR IMAGE URL (using QRServer API)
+        const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
+        console.log(`✅ QR URL Generated: ${qrImage}`);
 
         // 3. SEND HTML EMAIL WITH QR
         const mailOptions = {
@@ -428,8 +429,9 @@ app.post('/broadcast-alert', async (req, res) => {
 
             // Generate Broadcast QR Code (Simplified)
             const qrText = `CAMPUS ALERT | Audience: ${audience} | Subject: ${subject} | Date: ${dateStr}`;
-            // 4. CREATE QR IMAGE URL (using Google Charts API)
-            const qrImage = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(qrText)}`;
+            // 4. CREATE QR IMAGE URL (using QRServer API)
+            const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}`;
+            console.log(`✅ Broadcast QR URL: ${qrImage}`);
 
             // Configure Broadcast Email
             const mailOptions = {
