@@ -110,8 +110,8 @@ app.post('/send-report', async (req, res) => {
     console.log(`Processing report for ${userEmail} | Ref: ${refId}`);
 
     try {
-        // 3. GENERATE QR CODE DATA (Simplified for email reliability)
-        const qrData = `RefID: ${refId} | Item: ${itemName} | Student: ${collectorName} | Date: ${dateLost}`;
+        // 3. GENERATE QR CODE DATA (Comprehensive details for Librarian scan)
+        const qrData = `REF-ID: ${refId} | ITEM: ${itemName} | STUDENT: ${collectorName} | DATE: ${dateLost} | LOCATION: ${location} | CONTACT: ${userEmail}`;
 
         // 4. CREATE QR IMAGE URL (using QRServer API - standard for professional emails)
         const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
@@ -204,8 +204,8 @@ app.post('/api/items/report-lost', async (req, res) => {
         const savedItem = await newItem.save();
         console.log(`Saved Lost Item to DB: ${savedItem._id}`);
 
-        // 2. GENERATE QR CODE DATA (Simplified for email reliability)
-        const qrData = `RefID: ${refId} | Item: ${itemName} | Student: ${collectorName} | Date: ${dateReported}`;
+        // 2. GENERATE QR CODE DATA (Comprehensive details for Librarian scan)
+        const qrData = `REF-ID: ${refId} | ITEM: ${itemName} | STUDENT: ${collectorName} | CATEGORY: ${category} | DATE: ${dateReported} | LOCATION: ${location} | CONTACT: ${email}`;
 
         // 3. CREATE QR IMAGE URL (using QRServer API)
         const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrData)}`;
