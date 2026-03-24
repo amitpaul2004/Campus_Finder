@@ -204,15 +204,8 @@ app.post('/api/items/report-lost', async (req, res) => {
         const savedItem = await newItem.save();
         console.log(`Saved Lost Item to DB: ${savedItem._id}`);
 
-        // 2. GENERATE QR CODE DATA
-        const qrData = `JIS UNIVERSITY REPORT
------------------------
-Ref ID: ${refId}
-Item: ${itemName}
-Student: ${collectorName}
-Date: ${dateReported}
-Status: REPORTED LOST
------------------------`;
+        // 2. GENERATE QR CODE DATA (Simplified for email reliability)
+        const qrData = `RefID: ${refId} | Item: ${itemName} | Student: ${collectorName} | Date: ${dateReported}`;
 
         // 3. CREATE QR IMAGE URL (using Google Charts API)
         const qrImage = `https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=${encodeURIComponent(qrData)}`;
@@ -263,7 +256,7 @@ Status: REPORTED LOST
         };
 
         try {
-            await sendEmailViaAPI(email, `ACTION REQUIRED: Lost Item Report Submitted (${refId})`, mailOptions.html, mailOptions.attachments[0]);
+            await sendEmailViaAPI(email, `ACTION REQUIRED: Lost Item Report Submitted (${refId})`, mailOptions.html, null);
         } catch(emailErr) {
             console.error("Warning: DB saved but email failed:", emailErr.message);
         }
@@ -433,8 +426,8 @@ app.post('/broadcast-alert', async (req, res) => {
                 default: targetEmail = process.env.BREVO_USER; // Fallback
             }
 
-            // Generate Broadcast QR Code
-            const qrText = `BROADCAST ALERT\nTarget: ${audience}\nSubject: ${subject}\nDate: ${dateStr}`;
+            // Generate Broadcast QR Code (Simplified)
+            const qrText = `CAMPUS ALERT | Audience: ${audience} | Subject: ${subject} | Date: ${dateStr}`;
             // 4. CREATE QR IMAGE URL (using Google Charts API)
             const qrImage = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(qrText)}`;
 
@@ -479,7 +472,7 @@ app.post('/broadcast-alert', async (req, res) => {
                 attachments: []
             };
             
-            await sendEmailViaAPI(targetEmail, `📢 ALERT: ${subject}`, mailOptions.html, mailOptions.attachments[0]);
+            await sendEmailViaAPI(targetEmail, `📢 ALERT: ${subject}`, mailOptions.html, null);
         }
 
         res.status(200).json({ success: true, message: "Broadcast processed successfully", data: savedAlert });
