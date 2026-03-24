@@ -33,17 +33,22 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 const https = require('https');
 
 async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null) {
-    const data = JSON.stringify({
-        sender: { name: "JISU Student Services", email: process.env.BREVO_USER },
+    const senderEmail = process.env.BREVO_USER || "noreply@jisu.edu.in";
+    const payload = {
+        sender: { name: "JISU Student Services", email: senderEmail },
         to: [{ email: toEmail }],
         subject: subject,
-        htmlContent: htmlContent,
-        attachments: attachment ? [{
-            name: attachment.filename,
-            content: attachment.content, // Should be base64 string
-            contentId: attachment.cid
-        }] : []
-    });
+        htmlContent: htmlContent
+    };
+
+    if (attachment) {
+        payload.attachments = [{
+            name: attachment.filename || "attachment.png",
+            content: attachment.content // Ensure this is raw base64 without headers or newlines
+        }];
+    }
+
+    const jsonData = JSON.stringify(payload);
 
     const options = {
         hostname: 'api.brevo.com',
@@ -51,9 +56,9 @@ async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null)
         method: 'POST',
         headers: {
             'accept': 'application/json',
-            'api-key': process.env.BREVO_PASS, // Use your Brevo SMTP Key as API Key
+            'api-key': process.env.BREVO_PASS,
             'content-type': 'application/json',
-            'Content-Length': data.length
+            'Content-Length': Buffer.byteLength(jsonData)
         }
     };
 
@@ -67,17 +72,22 @@ async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null)
                     resolve(body);
                 } else {
                     console.error(`❌ Brevo API Error (${res.statusCode}):`, body);
-                    reject(new Error(`Brevo API returned ${res.statusCode}`));
+                    try {
+                        const parsed = JSON.parse(body);
+                        reject(new Error(parsed.message || `Brevo Error ${res.statusCode}`));
+                    } catch {
+                        reject(new Error(`Brevo Error ${res.statusCode}`));
+                    }
                 }
             });
         });
 
         req.on('error', (e) => {
-            console.error(`❌ HTTP Request Error: ${e.message}`);
+            console.error(`❌ Request Error: ${e.message}`);
             reject(e);
         });
 
-        req.write(data);
+        req.write(jsonData);
         req.end();
     });
 }
