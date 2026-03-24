@@ -92,7 +92,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('user-email-display').textContent = userEmail;
                         modal.classList.add('active');
                         form.reset();
-                        
+
+                        // --- SEND CONFIRMATION EMAIL VIA EMAILJS (frontend, no backend needed) ---
+                        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`JIS UNIVERSITY\nRef: ${refId}\nItem: ${itemName}\nStudent: ${nameValue}\nStatus: REPORTED LOST`)}`;
+                        emailjs.send(
+                            'service_vkxaxes',      // ← Replace with your EmailJS Service ID
+                            'template_wupwxgr',     // ← Replace with your EmailJS Template ID
+                            {
+                                to_name:    nameValue,
+                                to_email:   userEmail,
+                                ref_id:     refId,
+                                item_name:  itemName,
+                                category:   category,
+                                location:   location,
+                                date_lost:  dateLost,
+                                qr_code_url: qrUrl
+                            }
+                        ).then(() => {
+                            console.log('✅ Confirmation email sent via EmailJS');
+                        }).catch(err => {
+                            console.warn('⚠️ Email failed (item still saved):', err);
+                        });
+
                         // Reset image ui
                         if(uploadLabel) {
                             uploadLabel.style.borderColor = "#e2e8f0";

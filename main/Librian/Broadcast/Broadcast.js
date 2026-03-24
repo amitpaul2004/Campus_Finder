@@ -56,7 +56,25 @@ async function sendBroadcast(e) {
 
         // 4. Success State
         btn.innerHTML = '<i class="fa-solid fa-check"></i> Published!';
-        btn.style.background = "#10b981"; // Success Green
+        btn.style.background = "#10b981";
+
+        // 5. Send email via EmailJS if toggle is ON
+        if (sendEmail) {
+            emailjs.send(
+                'YOUR_SERVICE_ID',      // ← Replace with your EmailJS Service ID
+                'YOUR_BROADCAST_TEMPLATE_ID', // ← Replace with your Broadcast Template ID
+                {
+                    target_audience: audience,
+                    alert_subject:   subject,
+                    alert_body:      body,
+                    sent_time:       new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                }
+            ).then(() => {
+                console.log('✅ Broadcast email sent via EmailJS');
+            }).catch(err => {
+                console.warn('⚠️ Broadcast email failed:', err);
+            });
+        }
 
         // 5. Update the Live Feed (UI Only, since we just saved it to DB)
         const now = new Date();
