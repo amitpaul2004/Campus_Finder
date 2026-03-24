@@ -18,7 +18,7 @@ const Item = require('./models/Item');    // Import Item model
 const Alert = require('./models/Alert');  // Import Alert model
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Connect to MongoDB
 connectDB();
@@ -28,28 +28,25 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' })); 
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-// --- UPDATED EMAIL CONFIGURATION ---
+// --- EMAIL CONFIGURATION (Brevo SMTP — works on Render free tier) ---
+// Why Brevo? Render blocks outbound Gmail SMTP (port 587 ETIMEDOUT).
+// Brevo's SMTP relay is NOT blocked by Render and uses the same nodemailer API.
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,        // ✅ Port 587 (STARTTLS) — Render blocks 465
-    secure: false,    // false = STARTTLS upgrade after connect
-    requireTLS: true, // Force TLS upgrade
+    host: 'smtp-relay.brevo.com',   // Brevo SMTP relay (works on Render)
+    port: 587,                       // Standard STARTTLS port
+    secure: false,                   // false = upgrade via STARTTLS
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false // Allow self-signed certs on Render
-    },
-    family: 4  // Force IPv4 (prevents IPv6 timeout issues on Render)
+        user: process.env.BREVO_USER, // Your Brevo account login email
+        pass: process.env.BREVO_PASS  // Brevo SMTP key (NOT your login password)
+    }
 });
 
-// Add a verification check to see if connection works on startup
+// Startup connection check
 transporter.verify(function (error, success) {
     if (error) {
         console.log("❌ Email Server Error: ", error);
     } else {
-        console.log("✅ Email Server is Ready to Send messages");
+        console.log("✅ Brevo Email Server is Ready to Send messages");
     }
 });
 
@@ -82,7 +79,7 @@ Status: REPORTED
         const qrImage = await QRCode.toDataURL(qrData);
 
         const mailOptions = {
-            from: `"JISU Student Services" <${process.env.EMAIL_USER}>`,
+            from: `"JISU Student Services" <${process.env.BREVO_USER}>`,
             to: userEmail,
             subject: `ACTION REQUIRED: Report Submitted (${refId})`,
             html: `
@@ -190,7 +187,7 @@ Status: REPORTED LOST
 
         // 3. SEND HTML EMAIL WITH QR
         const mailOptions = {
-            from: `"JISU Student Services" <${process.env.EMAIL_USER}>`,
+            from: `"JISU Student Services" <${process.env.BREVO_USER}>`,
             to: email, // use the unified 'email' field
             subject: `ACTION REQUIRED: Lost Item Report Submitted (${refId})`,
             html: `
@@ -408,7 +405,7 @@ app.post('/broadcast-alert', async (req, res) => {
                 case "ECE Department Only": targetEmail = "dimi.dey2004@gmail.com"; break;
                 case "Hostelers": 
                 case "Hostel Residents": targetEmail = "dasbedasbadal12340987@gmail.com"; break;
-                default: targetEmail = process.env.EMAIL_USER; // Fallback
+                default: targetEmail = process.env.BREVO_USER; // Fallback
             }
 
             // Generate Broadcast QR Code
@@ -417,7 +414,7 @@ app.post('/broadcast-alert', async (req, res) => {
 
             // Configure Broadcast Email
             const mailOptions = {
-                from: `"JISU Broadcast System" <${process.env.EMAIL_USER}>`,
+                from: `"JISU Broadcast System" <${process.env.BREVO_USER}>`,
                 to: targetEmail,
                 subject: `📢 ALERT: ${subject}`,
                 html: `
