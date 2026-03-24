@@ -31,19 +31,17 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 // --- UPDATED EMAIL CONFIGURATION ---
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,       // Use SSL Port
-    secure: true,    // Must be true for port 465
+    port: 587,        // ✅ Port 587 (STARTTLS) — Render blocks 465
+    secure: false,    // false = STARTTLS upgrade after connect
+    requireTLS: true, // Force TLS upgrade
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    // ⬇️ ADD THIS TO FIX TIMEOUTS ⬇️
     tls: {
-        // Do not fail on invalid certs
-        rejectUnauthorized: false
+        rejectUnauthorized: false // Allow self-signed certs on Render
     },
-    // Force IPv4 (Fixes Render/Gmail timeout issues)
-    family: 4 
+    family: 4  // Force IPv4 (prevents IPv6 timeout issues on Render)
 });
 
 // Add a verification check to see if connection works on startup
