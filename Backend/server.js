@@ -28,28 +28,59 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' })); 
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-// --- EMAIL CONFIGURATION (Brevo SMTP — works on Render free tier) ---
-// Why Brevo? Render blocks outbound Gmail SMTP (port 587 ETIMEDOUT).
-// Brevo's SMTP relay is NOT blocked by Render and uses the same nodemailer API.
-const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',   // Brevo SMTP relay (works on Render)
-    port: 587,                       // Standard STARTTLS port
-    secure: false,                   // false = upgrade via STARTTLS
-    auth: {
-        user: process.env.BREVO_USER, // Your Brevo account login email
-        pass: process.env.BREVO_PASS  // Brevo SMTP key (NOT your login password)
-    },
-    family: 4 // Force IPv4 to prevent connection timeouts on Render
-});
+// --- Brevo API Configuration (Stable HTTP API - NOT BLOCKED BY RENDER) ---
+// We use HTTP/HTTPS instead of SMTP because Render blocks all SMTP ports (587, 465).
+const https = require('https');
 
-// Startup connection check
-transporter.verify(function (error, success) {
-    if (error) {
-        console.log("❌ Email Server Error: ", error);
-    } else {
-        console.log("✅ Brevo Email Server is Ready to Send messages");
-    }
-});
+async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null) {
+    const data = JSON.stringify({
+        sender: { name: "JISU Student Services", email: process.env.BREVO_USER },
+        to: [{ email: toEmail }],
+        subject: subject,
+        htmlContent: htmlContent,
+        attachments: attachment ? [{
+            name: attachment.filename,
+            content: attachment.content, // Should be base64 string
+            contentId: attachment.cid
+        }] : []
+    });
+
+    const options = {
+        hostname: 'api.brevo.com',
+        path: '/v3/smtp/email',
+        method: 'POST',
+        headers: {
+            'accept': 'application/json',
+            'api-key': process.env.BREVO_PASS, // Use your Brevo SMTP Key as API Key
+            'content-type': 'application/json',
+            'Content-Length': data.length
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let body = '';
+            res.on('data', (chunk) => body += chunk);
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    console.log(`✅ Email sent successfully via API to ${toEmail}`);
+                    resolve(body);
+                } else {
+                    console.error(`❌ Brevo API Error (${res.statusCode}):`, body);
+                    reject(new Error(`Brevo API returned ${res.statusCode}`));
+                }
+            });
+        });
+
+        req.on('error', (e) => {
+            console.error(`❌ HTTP Request Error: ${e.message}`);
+            reject(e);
+        });
+
+        req.write(data);
+        req.end();
+    });
+}
 
 // --- ROUTE 0: TEST SERVER STATUS ---
 app.get('/', (req, res) => {
@@ -136,8 +167,7 @@ Status: REPORTED
             ]
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`Email Sent Successfully to ${userEmail}`);
+        await sendEmailViaAPI(userEmail, `ACTION REQUIRED: Report Submitted (${refId})`, mailOptions.html, mailOptions.attachments[0]);
         res.status(200).json({ message: "Report Email Sent Successfully" });
 
     } catch (error) {
@@ -236,10 +266,8 @@ Status: REPORTED LOST
             }]
         };
 
-        // Send Email but don't crash if it fails (the DB saved!)
         try {
-            await transporter.sendMail(mailOptions);
-            console.log(`Email Sent Successfully to ${email}`);
+            await sendEmailViaAPI(email, `ACTION REQUIRED: Lost Item Report Submitted (${refId})`, mailOptions.html, mailOptions.attachments[0]);
         } catch(emailErr) {
             console.error("Warning: DB saved but email failed:", emailErr.message);
         }
@@ -461,8 +489,7 @@ app.post('/broadcast-alert', async (req, res) => {
                 ]
             };
             
-            await transporter.sendMail(mailOptions);
-            console.log(`✅ Mass Email Broadcast sent successfully to ${targetEmail}`);
+            await sendEmailViaAPI(targetEmail, `📢 ALERT: ${subject}`, mailOptions.html, mailOptions.attachments[0]);
         }
 
         res.status(200).json({ success: true, message: "Broadcast processed successfully", data: savedAlert });
