@@ -120,8 +120,8 @@ Date: ${dateLost}
 Status: REPORTED
 -----------------------`;
 
-        // 4. CREATE QR IMAGE (Base64)
-        const qrImage = await QRCode.toDataURL(qrData);
+        // 4. CREATE QR IMAGE URL (using Google Charts API - most reliable for email)
+        const qrImage = `https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=${encodeURIComponent(qrData)}`;
 
         const mailOptions = {
             from: `"JISU Student Services" <${process.env.BREVO_USER}>`,
@@ -170,14 +170,7 @@ Status: REPORTED
                     </div>
                 </div>
             `,
-            attachments: [
-                {
-                    filename: 'qrcode.png',
-                    content: qrImage.split("base64,")[1],
-                    encoding: 'base64',
-                    cid: 'unique-qrcode-id'
-                }
-            ]
+            attachments: []
         };
 
         await sendEmailViaAPI(userEmail, `ACTION REQUIRED: Report Submitted (${refId})`, mailOptions.html, mailOptions.attachments[0]);
@@ -227,7 +220,8 @@ Date: ${dateReported}
 Status: REPORTED LOST
 -----------------------`;
 
-        const qrImage = await QRCode.toDataURL(qrData);
+        // 3. CREATE QR IMAGE URL (using Google Charts API)
+        const qrImage = `https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=${encodeURIComponent(qrData)}`;
 
         // 3. SEND HTML EMAIL WITH QR
         const mailOptions = {
@@ -271,12 +265,7 @@ Status: REPORTED LOST
                     </div>
                 </div>
             `,
-            attachments: [{
-                filename: 'qrcode.png',
-                content: qrImage.split("base64,")[1],
-                encoding: 'base64',
-                cid: 'unique-qrcode-id'
-            }]
+            attachments: []
         };
 
         try {
@@ -452,7 +441,8 @@ app.post('/broadcast-alert', async (req, res) => {
 
             // Generate Broadcast QR Code
             const qrText = `BROADCAST ALERT\nTarget: ${audience}\nSubject: ${subject}\nDate: ${dateStr}`;
-            const qrImage = await QRCode.toDataURL(qrText);
+            // 4. CREATE QR IMAGE URL (using Google Charts API)
+            const qrImage = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(qrText)}`;
 
             // Configure Broadcast Email
             const mailOptions = {
@@ -492,14 +482,7 @@ app.post('/broadcast-alert', async (req, res) => {
                         </div>
                     </div>
                 `,
-                attachments: [
-                    {
-                        filename: 'broadcast_qr.png',
-                        content: qrImage.split("base64,")[1],
-                        encoding: 'base64',
-                        cid: 'broadcast-qr'
-                    }
-                ]
+                attachments: []
             };
             
             await sendEmailViaAPI(targetEmail, `📢 ALERT: ${subject}`, mailOptions.html, mailOptions.attachments[0]);
