@@ -50,7 +50,8 @@ async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null)
         const base64Data = attachment.content.replace(/^data:image\/[a-z]+;base64,/, "").replace(/\s/g, "");
         payload.attachments = [{
             name: attachment.filename || "verification.png",
-            content: base64Data
+            content: base64Data,
+            contentId: attachment.cid || "attachment-id" // This allows <img src="cid:..."> to work
         }];
     }
 
@@ -148,7 +149,7 @@ Status: REPORTED
                             <h3 style="color: #1e2a5e; margin-top: 0;">Verification QR Code</h3>
                             <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Show this to the Librarian to instantly verify your claim.</p>
                             
-                            <img src="cid:unique-qrcode-id" alt="Report QR Code" style="width: 180px; height: 180px;" />
+                            <img src="${qrImage}" alt="Report QR Code" style="width: 180px; height: 180px;" />
                         </div>
 
                         <div style="background-color: #fffbeb; border: 1px solid #fcd34d; padding: 15px; border-radius: 6px; margin-top: 25px;">
@@ -253,7 +254,7 @@ Status: REPORTED LOST
                         <div style="text-align: center; margin: 30px 0; border: 2px dashed #ddd; padding: 20px; border-radius: 10px;">
                             <h3 style="color: #1e2a5e; margin-top: 0;">Verification QR Code</h3>
                             <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Show this to the Librarian to verify your identity if the item is found.</p>
-                            <img src="cid:unique-qrcode-id" alt="Report QR Code" style="width: 180px; height: 180px;" />
+                            <img src="${qrImage}" alt="Report QR Code" style="width: 180px; height: 180px;" />
                         </div>
 
                         <div style="background-color: #fffbeb; border: 1px solid #fcd34d; padding: 15px; border-radius: 6px; margin-top: 25px;">
@@ -482,7 +483,7 @@ app.post('/broadcast-alert', async (req, res) => {
 
                             <div style="text-align: center; margin: 30px 0; border: 2px dashed #ddd; padding: 20px; border-radius: 10px;">
                                 <h3 style="color: #1e2a5e; margin-top: 0; font-size: 16px;">Official Broadcast QR</h3>
-                                <img src="cid:broadcast-qr" alt="Broadcast QR" style="width: 150px; height: 150px;" />
+                                <img src="${qrImage}" alt="Broadcast QR" style="width: 150px; height: 150px;" />
                             </div>
                         </div>
 
