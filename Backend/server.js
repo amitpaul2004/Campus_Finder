@@ -248,7 +248,7 @@ app.post('/api/items/report-lost', async (req, res) => {
 
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
                         <div style="text-align: center;">
-                             <a href="https://university-lost-found-83zs.vercel.app/" style="display: inline-block; background-color: #1e2a5e; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 14px; margin-top: 5px;">Check Dashboard</a>
+                             <a href="https://uniback-one.vercel.app/lost_and_found/Check%20Claim%20Status/login.html" style="display: inline-block; background-color: #1e2a5e; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 14px; margin-top: 5px;">Check Status</a>
                         </div>
                     </div>
                 </div>
