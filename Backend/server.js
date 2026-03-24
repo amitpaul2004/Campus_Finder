@@ -84,7 +84,7 @@ Status: REPORTED
         const qrImage = await QRCode.toDataURL(qrData);
 
         const mailOptions = {
-            from: '"JISU Student Services" <your_email@gmail.com>',
+            from: `"JISU Student Services" <${process.env.EMAIL_USER}>`,
             to: userEmail,
             subject: `ACTION REQUIRED: Report Submitted (${refId})`,
             html: `
@@ -192,7 +192,7 @@ Status: REPORTED LOST
 
         // 3. SEND HTML EMAIL WITH QR
         const mailOptions = {
-            from: '"JISU Student Services" <your_email@gmail.com>',
+            from: `"JISU Student Services" <${process.env.EMAIL_USER}>`,
             to: email, // use the unified 'email' field
             subject: `ACTION REQUIRED: Lost Item Report Submitted (${refId})`,
             html: `
@@ -280,7 +280,7 @@ app.post('/api/items/report-found', async (req, res) => {
             dateReported: new Date(dateReported),
             description,
             image, // Includes the base64 string
-            status: 'Pending',
+            status: 'pending',
             refId: autoRefId
         });
 
@@ -419,7 +419,7 @@ app.post('/broadcast-alert', async (req, res) => {
 
             // Configure Broadcast Email
             const mailOptions = {
-                from: '"JISU Broadcast System" <your_email@gmail.com>',
+                from: `"JISU Broadcast System" <${process.env.EMAIL_USER}>`,
                 to: targetEmail,
                 subject: `📢 ALERT: ${subject}`,
                 html: `
