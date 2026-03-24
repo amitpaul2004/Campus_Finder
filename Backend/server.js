@@ -33,7 +33,11 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 const https = require('https');
 
 async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null) {
-    const senderEmail = process.env.BREVO_USER || "noreply@jisu.edu.in";
+    const senderEmail = (process.env.BREVO_USER || "").trim();
+    if (!senderEmail) {
+        console.error("❌ Error: BREVO_USER is not set in environment variables.");
+    }
+
     const payload = {
         sender: { name: "JISU Student Services", email: senderEmail },
         to: [{ email: toEmail }],
@@ -41,14 +45,17 @@ async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null)
         htmlContent: htmlContent
     };
 
-    if (attachment) {
+    if (attachment && attachment.content) {
+        // Sanitize base64: Remove any data header, newlines, or spaces
+        const base64Data = attachment.content.replace(/^data:image\/[a-z]+;base64,/, "").replace(/\s/g, "");
         payload.attachments = [{
-            name: attachment.filename || "attachment.png",
-            content: attachment.content // Ensure this is raw base64 without headers or newlines
+            name: attachment.filename || "verification.png",
+            content: base64Data
         }];
     }
 
     const jsonData = JSON.stringify(payload);
+    const bodyBuffer = Buffer.from(jsonData, 'utf8');
 
     const options = {
         hostname: 'api.brevo.com',
@@ -58,26 +65,21 @@ async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null)
             'accept': 'application/json',
             'api-key': process.env.BREVO_PASS,
             'content-type': 'application/json',
-            'Content-Length': Buffer.byteLength(jsonData)
+            'content-length': bodyBuffer.length
         }
     };
 
     return new Promise((resolve, reject) => {
         const req = https.request(options, (res) => {
-            let body = '';
-            res.on('data', (chunk) => body += chunk);
+            let responseBody = '';
+            res.on('data', (chunk) => responseBody += chunk);
             res.on('end', () => {
                 if (res.statusCode >= 200 && res.statusCode < 300) {
-                    console.log(`✅ Email sent successfully via API to ${toEmail}`);
-                    resolve(body);
+                    console.log(`✅ Email sent via API to ${toEmail}`);
+                    resolve(responseBody);
                 } else {
-                    console.error(`❌ Brevo API Error (${res.statusCode}):`, body);
-                    try {
-                        const parsed = JSON.parse(body);
-                        reject(new Error(parsed.message || `Brevo Error ${res.statusCode}`));
-                    } catch {
-                        reject(new Error(`Brevo Error ${res.statusCode}`));
-                    }
+                    console.error(`❌ Brevo API Error (${res.statusCode}):`, responseBody);
+                    reject(new Error(`Brevo API Error ${res.statusCode}`));
                 }
             });
         });
@@ -87,7 +89,7 @@ async function sendEmailViaAPI(toEmail, subject, htmlContent, attachment = null)
             reject(e);
         });
 
-        req.write(jsonData);
+        req.write(bodyBuffer);
         req.end();
     });
 }
