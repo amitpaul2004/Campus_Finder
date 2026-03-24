@@ -8,22 +8,50 @@
 require('dotenv').config(); 
 
 const express = require('express');
+const nodemailer = require('nodemailer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const QRCode = require('qrcode');
+const QRCode = require('qrcode'); // 1. IMPORT QR LIBRARY
 
-const connectDB = require('./config/db');
-const Item = require('./models/Item');
-const Alert = require('./models/Alert');
+const connectDB = require('./config/db'); // Import DB connect function
+const Item = require('./models/Item');    // Import Item model
+const Alert = require('./models/Alert');  // Import Alert model
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
+// Connect to MongoDB
 connectDB();
 
 app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' }));
+// Increase limit for Image Uploads
+app.use(bodyParser.json({ limit: '10mb' })); 
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+
+// --- UPDATED EMAIL CONFIGURATION ---
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,        // ✅ Port 587 (STARTTLS) — Render blocks 465
+    secure: false,    // false = STARTTLS upgrade after connect
+    requireTLS: true, // Force TLS upgrade
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false // Allow self-signed certs on Render
+    },
+    family: 4  // Force IPv4 (prevents IPv6 timeout issues on Render)
+});
+
+// Add a verification check to see if connection works on startup
+transporter.verify(function (error, success) {
+    if (error) {
+        console.log("❌ Email Server Error: ", error);
+    } else {
+        console.log("✅ Email Server is Ready to Send messages");
+    }
+});
 
 // --- ROUTE 0: TEST SERVER STATUS ---
 app.get('/', (req, res) => {
@@ -100,16 +128,17 @@ Status: REPORTED
                     </div>
                 </div>
             `,
+            attachments: [
+                {
+                    filename: 'qrcode.png',
+                    content: qrImage.split("base64,")[1],
+                    encoding: 'base64',
+                    cid: 'unique-qrcode-id'
+                }
+            ]
         };
 
-        await sendEmail({
-            to: userEmail,
-            subject: mailOptions.subject,
-            html: mailOptions.html,
-            qrBase64: qrImage.split("base64,")[1],
-            qrCid: 'unique-qrcode-id',
-            qrFilename: 'qrcode.png'
-        });
+        await transporter.sendMail(mailOptions);
         console.log(`Email Sent Successfully to ${userEmail}`);
         res.status(200).json({ message: "Report Email Sent Successfully" });
 
@@ -157,7 +186,67 @@ Date: ${dateReported}
 Status: REPORTED LOST
 -----------------------`;
 
-        res.status(201).json({ success: true, message: "Item reported successfully", data: savedItem });
+        const qrImage = await QRCode.toDataURL(qrData);
+
+        // 3. SEND HTML EMAIL WITH QR
+        const mailOptions = {
+            from: `"JISU Student Services" <${process.env.EMAIL_USER}>`,
+            to: email, // use the unified 'email' field
+            subject: `ACTION REQUIRED: Lost Item Report Submitted (${refId})`,
+            html: `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                    <div style="background-color: #1e2a5e; padding: 20px; text-align: center; color: white;">
+                        <h2 style="margin: 0;">Lost Item Report Received</h2>
+                    </div>
+                    <div style="padding: 30px; background-color: #ffffff;">
+                        <p>Dear <strong>${collectorName}</strong>,</p>
+                        <p>Your lost item report has been successfully logged in our system and dashboard.</p>
+
+                        <div style="background-color: #f8fafc; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+                            <p style="margin: 5px 0;"><strong>Ref ID:</strong> <span style="font-family: monospace; color: #1e2a5e;">${refId}</span></p>
+                            <p style="margin: 5px 0;"><strong>Item:</strong> ${itemName}</p>
+                            <p style="margin: 5px 0;"><strong>Category:</strong> ${category}</p>
+                            <p style="margin: 5px 0;"><strong>Date:</strong> ${dateReported}</p>
+                            <p style="margin: 5px 0;"><strong>Location:</strong> ${location}</p>
+                        </div>
+
+                        <div style="text-align: center; margin: 30px 0; border: 2px dashed #ddd; padding: 20px; border-radius: 10px;">
+                            <h3 style="color: #1e2a5e; margin-top: 0;">Verification QR Code</h3>
+                            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Show this to the Librarian to verify your identity if the item is found.</p>
+                            <img src="cid:unique-qrcode-id" alt="Report QR Code" style="width: 180px; height: 180px;" />
+                        </div>
+
+                        <div style="background-color: #fffbeb; border: 1px solid #fcd34d; padding: 15px; border-radius: 6px; margin-top: 25px;">
+                            <h3 style="color: #92400e; margin-top: 0; font-size: 16px;">⚠️ Next Steps</h3>
+                            <p style="color: #b45309; margin-bottom: 0; font-size: 14px;">
+                                We will notify you if an item matching this description is turned in to the library.
+                            </p>
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                        <div style="text-align: center;">
+                             <a href="https://university-lost-found-83zs.vercel.app/" style="display: inline-block; background-color: #1e2a5e; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 14px; margin-top: 5px;">Check Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            `,
+            attachments: [{
+                filename: 'qrcode.png',
+                content: qrImage.split("base64,")[1],
+                encoding: 'base64',
+                cid: 'unique-qrcode-id'
+            }]
+        };
+
+        // Send Email but don't crash if it fails (the DB saved!)
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log(`Email Sent Successfully to ${email}`);
+        } catch(emailErr) {
+            console.error("Warning: DB saved but email failed:", emailErr.message);
+        }
+
+        res.status(201).json({ success: true, message: "Item reported and email sent successfully", data: savedItem });
 
     } catch (error) {
         console.error("Error saving lost item:", error);
@@ -364,16 +453,17 @@ app.post('/broadcast-alert', async (req, res) => {
                         </div>
                     </div>
                 `,
+                attachments: [
+                    {
+                        filename: 'broadcast_qr.png',
+                        content: qrImage.split("base64,")[1],
+                        encoding: 'base64',
+                        cid: 'broadcast-qr'
+                    }
+                ]
             };
-
-            await sendEmail({
-                to: targetEmail,
-                subject: mailOptions.subject,
-                html: mailOptions.html,
-                qrBase64: qrImage.split("base64,")[1],
-                qrCid: 'broadcast-qr',
-                qrFilename: 'broadcast_qr.png'
-            });
+            
+            await transporter.sendMail(mailOptions);
             console.log(`✅ Mass Email Broadcast sent successfully to ${targetEmail}`);
         }
 
